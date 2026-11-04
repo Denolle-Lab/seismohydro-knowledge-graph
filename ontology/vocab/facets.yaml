@@ -1,0 +1,89 @@
+# Cross-cutting concepts that describe how and why a study was done, and where it applies.
+# Definitions and boundary tests are in docs/node-types.md. Seed entries, for review in M3.
+# Decision requirements are left empty on purpose: each one needs a cited source.
+domain: shared
+description: Research approaches, tasks, gaps, hazards, settings, regions, events and decisions.
+concepts:
+  # Research approach. Every work gets one primary value, judged on its main result.
+  - id: "shared:data_driven"
+    concept_type: ResearchApproach
+    label: data-driven
+    status: seed
+    definition: The main result comes from records through statistics, machine learning or empirical relations. No governing equation is imposed on the estimate.
+    synonyms: [empirical, machine learning, statistical, deep learning]
+  - id: "shared:model_driven"
+    concept_type: ResearchApproach
+    label: model-driven
+    status: seed
+    definition: The main result comes from solving or analyzing governing equations. Data only set up, calibrate or check the model.
+    synonyms: [process-based, physics-based, mechanistic, numerical simulation, forward modeling]
+  - id: "shared:hybrid"
+    concept_type: ResearchApproach
+    label: hybrid data-model
+    status: seed
+    definition: Governing equations and records jointly constrain the estimate that is the main result.
+    synonyms: [physics-informed, inversion, data assimilation, hybrid modeling]
+
+  # Tasks
+  - {id: "shared:detection", concept_type: Task, label: detection, status: seed, definition: Decide whether and when a signal or event occurred.}
+  - {id: "shared:monitoring", concept_type: Task, label: monitoring, status: seed, definition: Track a quantity through time.}
+  - {id: "shared:forecasting", concept_type: Task, label: forecasting, status: seed, definition: Estimate a future state., synonyms: [prediction]}
+  - {id: "shared:parameter_estimation", concept_type: Task, label: parameter estimation, status: seed, definition: Infer material or model parameters from data., synonyms: [inversion, calibration]}
+  - {id: "shared:imaging", concept_type: Task, label: imaging, status: seed, definition: Map a property in space., synonyms: [tomography]}
+  - {id: "shared:attribution", concept_type: Task, label: attribution, status: seed, definition: Identify the cause of an observed signal or change.}
+  - {id: "shared:downscaling", concept_type: Task, label: downscaling, status: seed, definition: Infer finer-scale values from coarser data.}
+
+  # Gaps
+  - {id: "shared:sparse_observations", concept_type: Gap, label: sparse observations, status: seed, synonyms: [limited data, data scarcity]}
+  - {id: "shared:poor_depth_resolution", concept_type: Gap, label: poor depth resolution, status: seed}
+  - {id: "shared:non_uniqueness", concept_type: Gap, label: non-uniqueness, status: seed, synonyms: [ambiguous interpretation, trade-off between parameters]}
+  - {id: "shared:scale_mismatch", concept_type: Gap, label: scale mismatch, status: seed, synonyms: [point-scale measurements]}
+  - {id: "shared:unknown_physical_link", concept_type: Gap, label: unknown physical link, status: seed, synonyms: [poorly understood mechanism, poorly constrained]}
+  - {id: "shared:no_field_validation", concept_type: Gap, label: no field validation, status: seed}
+  - {id: "shared:short_records", concept_type: Gap, label: short records, status: seed}
+  - {id: "shared:limited_transferability", concept_type: Gap, label: limited transferability, status: seed, synonyms: [site-specific]}
+
+  # Hazards. Floods and droughts are in the hydrology vocabulary.
+  - {id: "shared:ground_shaking", concept_type: Hazard, label: earthquake ground shaking, status: seed}
+  - {id: "shared:liquefaction", concept_type: Hazard, label: liquefaction, status: seed, synonyms: [soil liquefaction]}
+  - {id: "shared:landslide", concept_type: Hazard, label: landslide, status: seed, synonyms: [debris flow]}
+
+  # Events
+  - {id: "shared:tohoku_2011", concept_type: Event, label: 2011 Tohoku-oki earthquake, status: seed, event_date: "2011-03-11", synonyms: [Tohoku earthquake]}
+
+  # Settings
+  - {id: "shared:karst_terrain", concept_type: Setting, label: karst terrain, status: seed}
+  - {id: "shared:arid_basin", concept_type: Setting, label: arid basin, status: seed, synonyms: [semi-arid basin]}
+  - {id: "shared:agricultural_basin", concept_type: Setting, label: agricultural basin, status: seed, synonyms: [irrigated basin]}
+  - {id: "shared:mountain_catchment", concept_type: Setting, label: mountain catchment, status: seed, synonyms: [alpine catchment]}
+  - {id: "shared:urban_area", concept_type: Setting, label: urban area, status: seed}
+  - {id: "shared:coastal_aquifer_setting", concept_type: Setting, label: coastal aquifer, status: seed}
+
+  # Regions
+  - {id: "shared:california_central_valley", concept_type: Region, label: California Central Valley, status: seed}
+
+  # Decision domains
+  - {id: "shared:resource_management", concept_type: DecisionDomain, label: water resource management, status: seed, definition: Decisions about allocating and sustaining water supply.}
+  - {id: "shared:disaster_management", concept_type: DecisionDomain, label: disaster management, status: seed, definition: Decisions to prepare for and respond to hazards.}
+  - {id: "shared:subsurface_operations", concept_type: DecisionDomain, label: subsurface energy and storage operations, status: seed, definition: "Decisions about injecting, storing or extracting fluids and heat underground."}
+
+  # Decisions
+  - {id: "shared:groundwater_allocation", concept_type: Decision, label: groundwater allocation, status: seed, broader: ["shared:resource_management"]}
+  - {id: "shared:reservoir_operation", concept_type: Decision, label: reservoir operation, status: seed, broader: ["shared:resource_management"]}
+  - {id: "shared:flood_warning", concept_type: Decision, label: flood warning, status: seed, broader: ["shared:disaster_management"]}
+  - {id: "shared:earthquake_early_warning", concept_type: Decision, label: earthquake early warning, status: seed, broader: ["shared:disaster_management"]}
+  - {id: "shared:dam_safety", concept_type: Decision, label: dam safety assessment, status: seed, broader: ["shared:disaster_management"]}
+  - {id: "shared:injection_regulation", concept_type: Decision, label: fluid injection regulation, status: seed, broader: ["shared:subsurface_operations"]}
+  - {id: "shared:co2_storage_monitoring", concept_type: Decision, label: CO2 storage monitoring, status: seed, broader: ["shared:subsurface_operations"]}
+  - {id: "shared:geothermal_development", concept_type: Decision, label: geothermal development, status: seed, broader: ["shared:subsurface_operations"]}
+
+  # Sensors outside both core fields, which already appear in the bridge literature.
+  - {id: "shared:geodetic_sensor", concept_type: Sensor, label: geodetic sensor, status: seed}
+  - {id: "shared:gnss", concept_type: Sensor, label: GNSS, status: seed, synonyms: [GPS], broader: ["shared:geodetic_sensor"]}
+  - {id: "shared:insar", concept_type: Sensor, label: InSAR, status: seed, synonyms: [interferometric synthetic aperture radar], broader: ["shared:geodetic_sensor"]}
+
+  # Software
+  - {id: "shared:modflow", concept_type: Software, label: MODFLOW, status: seed}
+  - {id: "shared:parflow", concept_type: Software, label: ParFlow, status: seed}
+  - {id: "shared:specfem", concept_type: Software, label: SPECFEM, status: seed, synonyms: [SPECFEM3D]}
+  - {id: "shared:obspy", concept_type: Software, label: ObsPy, status: seed}

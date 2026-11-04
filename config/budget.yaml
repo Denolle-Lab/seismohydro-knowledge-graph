@@ -1,0 +1,25 @@
+# Spending caps and OpenAlex rates. The client stops before a request would pass a cap.
+# Rates: https://help.openalex.org/access/example-costs/ (read 2026-11-03).
+openalex:
+  rates_usd_per_call:
+    list: 0.0001      # list + filter, including group_by on a list
+    search: 0.001     # any .search filter, including group_by on a search
+    singleton: 0.0    # get single entity
+  usd_per_credit: 0.0001  # a search costs 10 credits and $0.001
+  daily_usd:
+    no_key: 0.10
+    free_key: 1.00
+  run_usd:
+    scope_report: 0.05
+    ingest: 2.00
+    refresh: 0.25
+  min_interval_s:
+    # Searches with more than 5 boolean operators are limited to 1 request/s without a key
+    # and 5 request/s with a free key. The bridge queries use 10 operators.
+    no_key: 1.1
+    with_key: 0.25
+  max_retries: 5
+
+llm:
+  # Used from M4. Extraction refuses to start without an explicit --max-usd at or below this cap.
+  run_usd_cap: 15.00

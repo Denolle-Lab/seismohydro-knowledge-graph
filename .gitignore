@@ -1,0 +1,22 @@
+# Data stays out of git. Raw OpenAlex records contain abstract indexes, which must not be redistributed.
+data/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# OS and editors
+.DS_Store
+.vscode/
+.idea/

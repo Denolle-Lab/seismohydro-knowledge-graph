@@ -1,0 +1,3 @@
+{"source":"W900000001","target":"seis:dv_v","edge_type":"mentions","layer":"L2","work_id":"W900000001","char_start":33,"char_end":37,"extractor_version":"gazetteer-fixture","confidence":1.0,"tier":"gazetteer"}
+{"source":"seis:dv_v","target":"hydro:groundwater_storage","edge_type":"responds_to","layer":"L2","work_id":"W900000001","char_start":33,"char_end":61,"extractor_version":"llm-fixture","confidence":0.8,"tier":"llm"}
+{"source":"W900000003","target":"mech:river_seismics","edge_type":"supports_mechanism","layer":"L3","work_id":"W900000003","char_start":0,"char_end":27,"extractor_version":"human-fixture","confidence":0.9,"tier":"human"}

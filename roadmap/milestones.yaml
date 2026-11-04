@@ -1,0 +1,166 @@
+# Source for GitHub milestones and issues. See scripts/bootstrap_github.py.
+# M0 has no issues: the scaffold itself delivers it.
+labels:
+  - {name: domain-review, color: "0e8a16", description: Needs a seismologist or hydrologist}
+  - {name: pipeline, color: "1d76db", description: Code in the data pipeline}
+  - {name: science, color: "5319e7", description: Scientific analysis or evaluation}
+  - {name: paid-run, color: "d93f0b", description: Spends API money and needs a cap}
+
+milestones:
+  - title: "M0 Scaffold"
+    description: "Repo structure, metered client, schema, fixture graph, CI. Done when CI passes on the first push. API cost $0."
+    issues: []
+
+  - title: "M1 Scope and ingest"
+    description: "Adjudicated scope, about 1M works, coverage by journal and era. Done when recall is at least 95% on 50 canary DOIs and precision at least 90% on 200 random works per set. API cost about $2."
+    issues:
+      - title: "Choose 50 canary DOIs, half of them bridge papers"
+        labels: [domain-review]
+        body: "Hand-pick works that any sensible corpus must contain, stored as DOIs in `config/canaries.yaml`. Include ambient-noise velocity change with groundwater, river seismics, induced seismicity, and core works in each field."
+      - title: "Adjudicate topic and journal scope"
+        labels: [domain-review]
+        body: "Review `config/scope.yaml`. Decide on T10572 (mostly geoelectrical), confirm the `candidate_journals` IDs, find the ID for the journal Groundwater, and check whether older JGR Solid Earth sits under another source. Measure how much of the four application sets (70,520 works) is on topic, and how much the sets overlap."
+      - title: "Run the first full ingest with a free key"
+        labels: [pipeline, paid-run]
+        body: "`shkg ingest` over two days, for up to $1.86. Check `data/openalex_ledger.json` against the OpenAlex dashboard and replace the estimates in `ROADMAP.md` with actual spend."
+      - title: "Audit recall and precision"
+        labels: [pipeline, domain-review]
+        body: "Add `shkg audit`: canary recall, plus 200 random works per set for manual labeling. Thresholds: at least 95% recall, at least 90% precision."
+      - title: "Report abstract coverage by journal and era"
+        labels: [pipeline, science]
+        body: "Coverage is about 60% overall. Find out whether it varies by publisher, because a publisher-level gap would later look like a research gap. Output goes to `docs/`, and feeds normalization in M6."
+      - title: "Add a work-level domain label"
+        labels: [pipeline]
+        body: "Combine journal, topic and vocabulary density, since OpenAlex topics alone misplace works."
+
+  - title: "M2 Bibliographic graph"
+    description: "L0 graph, cross-domain citation flow by year, work-level interdisciplinarity score. Done when edge counts reconcile with referenced_works, in-corpus citation share is reported, and the score is stable under resampling. API cost $0."
+    issues:
+      - title: "Test graph build at full corpus size"
+        labels: [pipeline]
+        body: "`shkg graph build` has only run on fixtures. Measure time and memory on the real corpus, and replace any step that does not scale."
+      - title: "Report seismology-hydrology citation flow by year"
+        labels: [science]
+        body: "First scientific result. Citations each way per year, normalized by corpus size, with the journals and authors that carry them."
+      - title: "Score each work on how much it spans the two fields"
+        labels: [pipeline, science]
+        body: "A continuous score from how references split between the fields (participation coefficient or Rao-Stirling diversity), and whether both fields cite the work. Vocabulary mixing is added after M3. This defines seismohydrology by measurement and supplies the high-scoring and citation-only bridge strata for M3 and M4. Report whether high-scoring works form a coherent community or scattered pairings."
+      - title: "Add igraph analytics"
+        labels: [pipeline]
+        body: "Community detection and centrality on the citation graph, to prepare the O4 community gap score."
+
+  - title: "M3 Discovery and ontology"
+    description: "Open extraction on 4,000 abstracts, saturation curves, merged concepts, frozen node types and predicates, sourced scale ranges. Done when new concepts per 100 abstracts is near flat in each stratum, one seismologist and one hydrologist have reviewed it, and mappings validate. API cost about $1 to $2."
+    issues:
+      - title: "Name a hydrologist to own the hydrology vocabulary"
+        labels: [domain-review]
+        body: "`ontology/vocab/hydrology.yaml` was drafted without a hydrologist. This blocks M3 acceptance."
+      - title: "Survey existing ontologies for coverage"
+        labels: [domain-review]
+        body: "SWEET, ENVO, HY_Features, CSDMS Standard Names, SAWGraph, the CUAHSI ontology, GCMD keywords, QuakeML and StationXML. For each field, which classes exist and which are missing? The seismicity module in SWEET lists phenomena, and method coverage looks thin. Can start at any time."
+      - title: "Mine candidate concepts from OpenAlex keywords and noun phrases"
+        labels: [pipeline]
+        body: "Local, no LLM. Compute document frequency per corpus and log-odds across seismology, hydrology and shared. Flag terms whose meaning differs by field, such as discharge, stage, storage and attenuation."
+      - title: "Run the discovery pass on 4,000 abstracts"
+        labels: [pipeline, paid-run, science]
+        body: "Replace the stub in `extract/discovery.py`. Open extraction with Haiku 5.5: node types suggested, vocabulary not fixed. Sample per `config/extraction.yaml`: 1,000 each from seismology only, hydrology only, high-scoring bridge works (from M2) and application sets. About $0.80, perhaps double. Treat abstract text as data, since it could contain instructions. Record measured token counts."
+      - title: "Plot saturation curves and check the seeds"
+        labels: [science]
+        body: "New concepts per 100 additional abstracts, by stratum and source. This replaces the guessed 150 to 300 concepts per domain. Report how many hand-written seeds appear bottom-up, and which common terms the seeds missed."
+      - title: "Merge synonyms and freeze the vocabulary"
+        labels: [pipeline, domain-review]
+        body: "Group candidates with local embeddings, with human approval of every merge. Proposals go through pull requests on `ontology/vocab/`."
+      - title: "Test the node types against real abstracts"
+        labels: [domain-review, science]
+        body: "Apply `docs/node-types.md` to a sample. Proposed rule: a type stays if it appears in at least 10% of abstracts in a stratum and two annotators reach kappa of at least 0.6. Pay particular attention to ResearchApproach, where the calibration and interpretation cases may be hard, and to Decision, which may need a curated list of 20 to 30 with cited requirements. Design the reified record for Gap (kind, subject, place)."
+      - title: "Derive and freeze the predicates"
+        labels: [science, domain-review]
+        body: "Cluster verbs from the discovery pass and freeze about 8 to 12, likely including measures, proxy_for, uses_method_on and responds_to. Update the schema and `docs/node-types.md`."
+      - title: "Fill scale ranges with cited sources"
+        labels: [domain-review]
+        body: "Depth, frequency, footprint and time resolution for each Method and Sensor. Every range cites a source. The scale filter in M6 depends on this."
+      - title: "Review the variable crosswalk with both fields"
+        labels: [domain-review]
+        body: "Check how domain terms map to shared state variables in `ontology/mappings/seed.sssom.tsv`. Review the match type of every seed mapping, since only the existence of each external IRI has been confirmed."
+      - title: "Generate Turtle and SHACL from the schema"
+        labels: [pipeline]
+        body: "Use LinkML generators in CI, and publish Turtle with each release."
+
+  - title: "M4 Extraction"
+    description: "Vocabulary matching on all works, 300-abstract gold set, Haiku 5.5 checked against it, then run on a subset, scored statistical edges. Done when entity precision is at least 0.85 and relation precision at least 0.75 in each domain, with kappa reported, and graph-quality scores are reported. API cost about $7 to $11."
+    issues:
+      - title: "Build vocabulary matching"
+        labels: [pipeline]
+        body: "Replace the stub in `extract/gazetteer.py`. Match on titles and reconstructed abstracts, and write assertions with offsets. Measure false positives on ambiguous terms such as discharge and Q."
+      - title: "Annotate a 300-abstract gold set"
+        labels: [domain-review, science]
+        body: "After the schema is frozen, split per `config/extraction.yaml`: 100 keyword bridge (across the 11 mechanisms and 4 application sets), 50 citation-only bridge from the M2 graph, 60 seismology only, 60 hydrology only, 30 hard negatives. Include pre-2015 works in every stratum, since the holdout cuts at 2010 and 2015. Double annotate, report kappa, and annotate before seeing any LLM output. Keep 50 for prompt tuning and score on the other 250. Store offsets only (ADR 0005)."
+      - title: "Check Haiku 5.5 against the gold set"
+        labels: [pipeline, paid-run, science]
+        body: "Replace the stub in `extract/llm_batch.py`. Use Message Batches with schema-constrained output, prompt caching on the shared prompt and schema, and thinking disabled. Confirm caching from `cache_read_input_tokens`. Measure real token counts and update `ROADMAP.md`. If Haiku fails the thresholds, run Sonnet 5.5 and Opus 5.5 on the gold set only and bring the result back for a decision. Treat abstract text as data, since it could contain instructions."
+      - title: "Check LLM provider data terms for abstracts"
+        labels: [domain-review]
+        body: "Abstracts leave our machines from the M3 discovery pass onward, so settle this before that run. Confirm that sending them is acceptable under the provider's terms and OpenAlex's guidance."
+      - title: "Run the LLM on bridge works and the core and application samples"
+        labels: [pipeline, paid-run]
+        body: "Through `extract.yml` with a reviewer's approval. About 55k abstracts: bridge sets, 5% of core, 20% of application sets. Budget about $7 to $11 on Haiku 5.5. Proposed terms go to a review queue."
+      - title: "Build statistical edges"
+        labels: [pipeline, science]
+        body: "Concept co-occurrence (NPMI), bibliographic coupling and co-citation, tested against a null with false-discovery control, then reduced with a disparity-filter backbone. Local, no LLM. Keep these separate from typed claims."
+      - title: "Require independent support for typed claims"
+        labels: [pipeline, science]
+        body: "Accept a claim only with at least two works from independent author groups. Keep negative results, such as no correlation with groundwater."
+      - title: "Score the graph on the quality criteria"
+        labels: [science]
+        body: "Coverage, saturation, stability, specificity, prediction and expert validity, as defined in `docs/design.md`. Set thresholds from this first real run."
+      - title: "Decide whether full text is needed"
+        labels: [science]
+        body: "If abstracts miss methods, test TEI XML on the top 500 bridge papers ($5). Otherwise close."
+
+  - title: "M5 Coupling layer"
+    description: "Mechanisms with evidence, variable crosswalk, unified graph. Done when each seed mechanism has reviewed evidence or is marked unsupported. API cost $0."
+    issues:
+      - title: "Review evidence for the 11 seed mechanisms"
+        labels: [domain-review, science]
+        body: "For each mechanism in `ontology/coupling/mechanisms.yaml`, measure query precision, pick exemplar works, and set the status to reviewed or unsupported. Split `mech:das_water`, which mixes applications."
+      - title: "Add links between mechanisms, variables and compartments to the graph"
+        labels: [pipeline]
+        body: "The build currently adds mechanism nodes only. These links are curated facts rather than claims from one work, so decide what their provenance looks like and update `validate_graph` deliberately."
+      - title: "Look for mechanisms the seed list missed"
+        labels: [science]
+        body: "Search bridge works for couplings outside the 11 seeds, for example glacier hydrology, tidal modulation and karst."
+
+  - title: "M6 Opportunity map"
+    description: "Scores for classes O1 to O4, holdout test, expert panel. Done when scores beat preferential attachment at the 2015 cutoff, canaries are recovered and panel ratings are reported. API cost under $1."
+    issues:
+      - title: "Normalize for coverage and vocabulary differences"
+        labels: [science]
+        body: "A gap counts only after adjusting for abstract coverage and extraction depth, and after checking for synonyms. Do this before scoring."
+      - title: "Implement O1 to O4 scores"
+        labels: [pipeline, science]
+        body: "Replace the stub in `analyze/opportunities.py`. Each candidate ships with evidence works and a scale check."
+      - title: "Run the time-sliced holdout"
+        labels: [pipeline, science]
+        body: "Replace the stub in `evaluate/holdout.py`. Cutoffs 2010, 2015 and 2020, tested on the next five years, against preferential attachment. Compare vocabulary-only and LLM graphs at the same cutoff to measure leakage from LLM training data."
+      - title: "Run an expert panel on the top 50"
+        labels: [domain-review, science]
+        body: "Domain experts from both fields rate candidates blind for novelty, feasibility and value."
+
+  - title: "M7 Release and automation"
+    description: "Zenodo DOI, public explorer, scheduled refresh, manuscript. Done when a clean release rebuilds from a tag and one refresh cycle stays under its cap. API cost about $1 per quarter."
+    issues:
+      - title: "Turn on scheduled runs"
+        labels: [pipeline, paid-run]
+        body: "Set the `OPENALEX_API_KEY` secret and the `ENABLE_SCHEDULED_RUNS` variable, then check one refresh cycle against its cap. Decide how refresh output merges into the full graph, since `refresh.yml` covers only the trailing 24 months."
+      - title: "Fund and test the quarterly rebuild"
+        labels: [pipeline, paid-run]
+        body: "A rebuild costs more than the $1 free daily budget and a runner cannot resume on a later day. Add about $1 prepaid and run `rebuild.yml` once. Switch to the snapshot if the corpus passes about 3M works."
+      - title: "Publish a release with a Zenodo DOI"
+        labels: [pipeline]
+        body: "Enable the Zenodo integration, get a legal view on published extracted terms (ADR 0005), and tag v1.0.0."
+      - title: "Build a public explorer on GitHub Pages"
+        labels: [pipeline]
+        body: "Static browser for the coupling layer and ranked opportunities, with links to evidence works."
+      - title: "Write the manuscript"
+        labels: [science]
+        body: "Methods, citation flow, opportunity map and holdout results."

@@ -1,0 +1,125 @@
+# Seed coupling mechanisms for review in M5. Each must end with reviewed evidence or status: unsupported.
+# probe_hits are raw title_and_abstract.search counts from 2026-11-03, restricted to
+# article, review and preprint. They are upper bounds with no precision check.
+description: How water and elastic waves interact, and methods crossing the two domains.
+mechanisms:
+  - id: "mech:dvv_water"
+    label: Ambient-noise velocity change responds to water
+    direction: water_to_wave
+    forcing_variables: ["shared:saturation", "shared:pore_pressure", "hydro:groundwater_storage"]
+    response_variables: ["seis:dv_v"]
+    constitutive_link: Effective stress and fluid substitution (Biot, Gassmann)
+    compartments: ["shared:vadose_zone", "shared:saturated_zone"]
+    probe_query: '"velocity change" AND ("ambient noise" OR "noise correlation" OR "seismic interferometry") AND (groundwater OR hydrological OR precipitation OR "water storage")'
+    probe_hits: 56
+    status: seed
+
+  - id: "mech:das_water"
+    label: Distributed acoustic sensing of water systems
+    direction: water_to_wave
+    forcing_variables: ["shared:saturation", "hydro:streamflow"]
+    response_variables: ["shared:strain", "seis:dv_v"]
+    constitutive_link: Depends on the application; to be split in review
+    compartments: ["shared:saturated_zone", "shared:river_channel"]
+    probe_query: '"distributed acoustic sensing" AND (groundwater OR river OR hydrology OR aquifer OR flood)'
+    probe_hits: 71
+    status: seed
+
+  - id: "mech:da_seismic_velocity"
+    label: Data assimilation applied to seismic velocity monitoring
+    direction: method_transfer
+    forcing_variables: []
+    response_variables: ["seis:dv_v"]
+    compartments: []
+    probe_query: '"data assimilation" AND ("ambient noise" OR "seismic velocity" OR dv/v)'
+    probe_hits: 256
+    status: seed
+
+  - id: "mech:hydrological_loading"
+    label: Hydrological mass loading deforms the crust
+    direction: water_to_wave
+    forcing_variables: ["shared:mass_load", "hydro:terrestrial_water_storage"]
+    response_variables: ["shared:strain"]
+    constitutive_link: Elastic loading Green's functions
+    compartments: ["shared:crust"]
+    probe_query: '"hydrological loading" AND (GNSS OR GPS OR GRACE OR seismic)'
+    probe_hits: 251
+    status: seed
+
+  - id: "mech:eq_hydrologic_response"
+    label: Earthquakes change streamflow, well levels and permeability
+    direction: wave_to_water
+    forcing_variables: ["shared:strain"]
+    response_variables: ["hydro:streamflow", "hydro:well_water_level", "shared:permeability"]
+    constitutive_link: Static poroelastic strain and dynamic-strain permeability enhancement
+    compartments: ["shared:saturated_zone", "shared:fault_zone"]
+    probe_query: 'earthquake AND ("streamflow" OR "well water level" OR "groundwater level" OR "permeability enhancement")'
+    probe_hits: 1001
+    status: seed
+
+  - id: "mech:shallow_water_velocity"
+    label: Soil moisture, freeze-thaw and permafrost change shallow velocity
+    direction: water_to_wave
+    forcing_variables: ["hydro:soil_moisture", "shared:ice_content"]
+    response_variables: ["seis:dv_v", "seis:vs"]
+    constitutive_link: Fluid substitution and ice stiffening of the frame
+    compartments: ["shared:vadose_zone", "shared:frozen_ground"]
+    probe_query: '(seismic OR "ambient noise") AND ("soil moisture" OR "freeze-thaw" OR permafrost OR "vadose zone")'
+    probe_hits: 1209
+    status: seed
+
+  - id: "mech:poroelastic_seismicity"
+    label: Poroelastic coupling of fluids and seismicity
+    direction: two_way
+    forcing_variables: ["shared:pore_pressure", "shared:strain"]
+    response_variables: ["seis:seismicity_rate", "shared:pore_pressure"]
+    constitutive_link: Biot poroelasticity and Coulomb failure
+    compartments: ["shared:fault_zone", "shared:crust"]
+    probe_query: 'poroelastic AND (earthquake OR seismicity)'
+    probe_hits: 1473
+    status: seed
+
+  - id: "mech:hydrogeophysics"
+    label: Seismic imaging of water in the critical zone
+    direction: water_to_wave
+    forcing_variables: ["shared:saturation", "shared:porosity"]
+    response_variables: ["seis:vp", "seis:vs"]
+    constitutive_link: Rock physics, including fluid substitution
+    compartments: ["shared:vadose_zone", "shared:saturated_zone"]
+    probe_query: 'hydrogeophysics OR ("seismic refraction" AND ("water table" OR "critical zone" OR groundwater))'
+    probe_hits: 1495
+    status: seed
+
+  - id: "mech:induced_seismicity"
+    label: Fluid injection induces seismicity
+    direction: water_to_wave
+    forcing_variables: ["shared:pore_pressure"]
+    response_variables: ["seis:seismicity_rate"]
+    constitutive_link: Pore pressure diffusion and Coulomb failure
+    compartments: ["shared:fault_zone", "shared:crust"]
+    probe_query: '"induced seismicity" AND (injection OR wastewater OR "pore pressure")'
+    probe_hits: 1812
+    status: seed
+
+  - id: "mech:hydroseismicity"
+    label: Rainfall, snowmelt and loading modulate natural seismicity
+    direction: water_to_wave
+    forcing_variables: ["hydro:precipitation", "hydro:snowmelt", "shared:mass_load"]
+    response_variables: ["seis:seismicity_rate"]
+    constitutive_link: Pore pressure diffusion, surface loading and Coulomb failure
+    compartments: ["shared:crust", "shared:fault_zone"]
+    probe_query: '(seismicity AND (rainfall OR monsoon OR snowmelt OR "hydrological loading"))'
+    probe_hits: 2300
+    status: seed
+
+  - id: "mech:river_seismics"
+    label: River flow and bedload generate seismic noise
+    direction: water_to_wave
+    forcing_variables: ["hydro:streamflow", "hydro:bedload_transport"]
+    response_variables: ["seis:seismic_noise_psd"]
+    constitutive_link: Bedload impact and turbulent-flow forces on the channel bed
+    compartments: ["shared:river_channel"]
+    # Inflated: "flood" also matches seismic design papers.
+    probe_query: '(seismic OR seismometer OR seismology) AND ("bedload" OR "river discharge" OR "fluvial" OR "flood")'
+    probe_hits: 7415
+    status: seed

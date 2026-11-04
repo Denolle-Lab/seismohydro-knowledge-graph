@@ -1,0 +1,35 @@
+name: release
+
+# On a version tag, take the graph tables from the latest successful rebuild, validate them and
+# publish a GitHub release. With the Zenodo integration enabled, the release also gets a DOI.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+      - run: uv sync --frozen
+      - name: Download tables from the latest rebuild
+        run: |
+          run_id=$(gh run list --workflow rebuild.yml --status success --limit 1 \
+            --json databaseId --jq '.[0].databaseId')
+          if [ -z "$run_id" ]; then
+            echo "No successful rebuild to release from." >&2
+            exit 1
+          fi
+          gh run download "$run_id" --name graph-tables --dir downloaded
+      - name: Validate, including the no-abstract rule
+        run: uv run shkg graph validate --path downloaded/graph
+      - name: Publish
+        run: gh release create "$GITHUB_REF_NAME" downloaded/graph/*.parquet --generate-notes

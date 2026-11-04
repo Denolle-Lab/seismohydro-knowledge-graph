@@ -1,0 +1,28 @@
+name: extract
+
+# LLM extraction. Manual dispatch only, and the paid-runs environment requires a reviewer.
+# Fails until milestone M4 replaces the stub in src/seismohydro_kg/extract/llm_batch.py.
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_usd:
+        description: Spending cap for this run, in USD
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    environment: paid-runs
+    timeout-minutes: 340
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      MAX_USD: ${{ inputs.max_usd }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+      - run: uv sync --frozen
+      - run: uv run shkg extract llm --max-usd "$MAX_USD"

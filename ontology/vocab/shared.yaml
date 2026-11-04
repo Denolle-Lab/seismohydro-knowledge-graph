@@ -1,0 +1,26 @@
+# State variables and compartments that both domains act on. This file is the hinge of the unified
+# system. Seed entries, for review in M3.
+domain: shared
+description: State variables and compartments shared by seismology and hydrology.
+concepts:
+  - {id: "shared:pore_pressure", concept_type: StateVariable, label: pore pressure, status: seed, unit: "qudt:Pressure", synonyms: [pore-fluid pressure, fluid pressure, pore water pressure]}
+  - {id: "shared:saturation", concept_type: StateVariable, label: water saturation, status: seed, synonyms: [saturation, degree of saturation, water content]}
+  - {id: "shared:effective_stress", concept_type: StateVariable, label: effective stress, status: seed, unit: "qudt:Pressure", synonyms: [effective pressure]}
+  - {id: "shared:mass_load", concept_type: StateVariable, label: surface mass load, status: seed, synonyms: [hydrological load, hydrologic loading, water mass load]}
+  - {id: "shared:strain", concept_type: StateVariable, label: strain, status: seed, unit: "qudt:Strain", synonyms: [elastic strain, dynamic strain, volumetric strain]}
+  - {id: "shared:permeability", concept_type: StateVariable, label: permeability, status: seed, unit: "qudt:Permeability", synonyms: [hydraulic conductivity, intrinsic permeability]}
+  - {id: "shared:porosity", concept_type: StateVariable, label: porosity, status: seed}
+  - {id: "shared:ice_content", concept_type: StateVariable, label: ice content, status: seed, synonyms: [frozen water content]}
+
+  # Compartments. Surface water and groundwater are parents, so analysis can run at either level.
+  - {id: "shared:surface_water", concept_type: Compartment, label: surface water, status: seed}
+  - {id: "shared:river_channel", concept_type: Compartment, label: river channel, status: seed, synonyms: [stream channel, riverbed], broader: ["shared:surface_water"]}
+  - {id: "shared:lake_reservoir", concept_type: Compartment, label: lake or reservoir, status: seed, synonyms: [lake, reservoir], broader: ["shared:surface_water"]}
+  - {id: "shared:wetland", concept_type: Compartment, label: wetland, status: seed, broader: ["shared:surface_water"]}
+  - {id: "shared:groundwater", concept_type: Compartment, label: groundwater system, status: seed, synonyms: [groundwater, subsurface water]}
+  - {id: "shared:saturated_zone", concept_type: Compartment, label: saturated zone, status: seed, synonyms: [aquifer, phreatic zone], broader: ["shared:groundwater"]}
+  - {id: "shared:vadose_zone", concept_type: Compartment, label: vadose zone, status: seed, synonyms: [unsaturated zone], broader: ["shared:groundwater"]}
+  - {id: "shared:snowpack", concept_type: Compartment, label: snowpack, status: seed}
+  - {id: "shared:frozen_ground", concept_type: Compartment, label: frozen ground, status: seed, synonyms: [permafrost, seasonally frozen ground]}
+  - {id: "shared:fault_zone", concept_type: Compartment, label: fault zone, status: seed, synonyms: [geological fault, damage zone]}
+  - {id: "shared:crust", concept_type: Compartment, label: crust, status: seed, synonyms: [upper crust, shallow crust]}

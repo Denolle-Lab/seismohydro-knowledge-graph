@@ -1,0 +1,43 @@
+[project]
+name = "seismohydro-kg"
+version = "0.1.0"
+description = "Knowledge graphs of seismology and hydrology, joined through a water-wave coupling layer, to map interdisciplinary opportunities."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "BSD-3-Clause" }
+authors = [{ name = "Denolle Lab" }]
+dependencies = [
+    "duckdb>=1.1",
+    "httpx>=0.27",
+    "linkml>=1.8",
+    "pyarrow>=17",
+    "pyyaml>=6",
+    "typer>=0.12",
+]
+
+[project.scripts]
+shkg = "seismohydro_kg.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/seismohydro_kg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Option", "typer.Argument"]

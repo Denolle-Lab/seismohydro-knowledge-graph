@@ -1,0 +1,230 @@
+id: https://github.com/Denolle-Lab/seismohydro-knowledge-graph/schema
+name: seismohydro
+title: Seismohydro knowledge graph schema
+description: >-
+  Classes shared by the seismology and hydrology vocabularies. Instances stay in per-domain files
+  and are joined through mappings and coupling mechanisms, not merged. Governing equations stay
+  separate PhysicalModel instances: an elastic wave equation and a Richards equation connect only
+  through the state variables and compartments they share.
+license: CC-BY-4.0
+prefixes:
+  linkml: https://w3id.org/linkml/
+  shkg: https://github.com/Denolle-Lab/seismohydro-knowledge-graph/schema/
+  sosa: http://www.w3.org/ns/sosa/
+default_prefix: shkg
+imports:
+  - linkml:types
+default_range: string
+
+enums:
+  Domain:
+    permissible_values:
+      seismology:
+      hydrology:
+      shared:
+  Direction:
+    permissible_values:
+      water_to_wave:
+      wave_to_water:
+      two_way:
+      method_transfer:
+        description: Not a physical coupling. A method applied across the two domains.
+  Status:
+    permissible_values:
+      seed:
+        description: Proposed in scaffolding, not yet reviewed.
+      reviewed:
+      unsupported:
+        description: Reviewed, and the literature does not support it.
+
+classes:
+  ScaleRange:
+    description: Bounds on what a method or sensor can resolve. Every value needs a source.
+    attributes:
+      depth_m_min: {range: float}
+      depth_m_max: {range: float}
+      frequency_hz_min: {range: float}
+      frequency_hz_max: {range: float}
+      footprint_m_min: {range: float}
+      footprint_m_max: {range: float}
+      time_resolution_s_min: {range: float}
+      time_resolution_s_max: {range: float}
+      source:
+        description: Work ID or citation for these bounds.
+        required: true
+
+  Concept:
+    description: Base class for every vocabulary entry.
+    attributes:
+      id:
+        identifier: true
+        pattern: "^(seis|hydro|shared):[a-z0-9_]+$"
+      concept_type:
+        designates_type: true
+        required: true
+      label:
+        required: true
+      definition: {}
+      synonyms:
+        multivalued: true
+        description: Phrases for the gazetteer in M4.
+      status:
+        range: Status
+        required: true
+      broader:
+        multivalued: true
+        description: IDs of parent concepts, for analysis at a coarser level.
+
+  # Definitions and boundary tests for annotators are in docs/node-types.md.
+  Sensor:
+    is_a: Concept
+    description: A physical instrument or platform that records a signal.
+    class_uri: sosa:Sensor
+    attributes:
+      scale: {range: ScaleRange, inlined: true}
+  Observable:
+    is_a: Concept
+    description: A quantity that is measured or derived from a record, which may only be a proxy.
+    class_uri: sosa:ObservableProperty
+    attributes:
+      proxy_for:
+        multivalued: true
+        range: StateVariable
+  StateVariable:
+    is_a: Concept
+    description: A physical quantity describing the system, whether or not it can be measured directly.
+    attributes:
+      unit:
+        description: QUDT unit or quantity kind, for example qudt:Pressure.
+  Process:
+    is_a: Concept
+    description: A physical mechanism or change through time, described without regard to harm.
+  Compartment:
+    is_a: Concept
+    description: A part of the Earth system where water resides or moves and elastic waves can act.
+  Setting:
+    is_a: Concept
+    description: A kind of environment where a study could be repeated. Not a named place.
+  Region:
+    is_a: Concept
+    description: A named geographic place.
+  Method:
+    is_a: Concept
+    description: A procedure applied to data or to a model to produce a result.
+    attributes:
+      scale: {range: ScaleRange, inlined: true}
+      typical_approach:
+        range: ResearchApproach
+        description: The usual approach. The approach recorded on a work takes precedence.
+  PhysicalModel:
+    is_a: Concept
+    description: A mathematical statement of physics, independent of its code or its data.
+    attributes:
+      equation_class:
+        description: For example hyperbolic or parabolic.
+  Software:
+    is_a: Concept
+    description: A named code that implements a method or a physical model.
+    attributes:
+      repository: {}
+  Dataset:
+    is_a: Concept
+    description: A named collection of records, or a network or archive that provides them.
+  ResearchApproach:
+    is_a: Concept
+    description: Whether data, governing equations, or both produce the main result of a study.
+  Task:
+    is_a: Concept
+    description: The inferential goal of a study, independent of how it is reached.
+  Gap:
+    is_a: Concept
+    description: A kind of limitation or unmet need that the literature states.
+  Hazard:
+    is_a: Concept
+    description: A process considered for its potential harm to people, property or ecosystems.
+  Event:
+    is_a: Concept
+    description: A specific occurrence with a date and a place.
+    attributes:
+      event_date: {}
+  DecisionDomain:
+    is_a: Concept
+    description: A sector of human decisions that research can serve.
+  Decision:
+    is_a: Concept
+    description: A specific choice someone must make, with information needs that can be stated.
+    attributes:
+      decision_maker: {}
+      required_latency: {}
+      required_accuracy: {}
+      requirement_source:
+        description: Citation for the stated latency and accuracy.
+
+  Vocabulary:
+    tree_root: true
+    attributes:
+      domain:
+        range: Domain
+        required: true
+      description: {}
+      concepts:
+        multivalued: true
+        inlined_as_list: true
+        range: Concept
+
+  CouplingMechanism:
+    description: A physical link between water and waves, or a method crossing the two domains.
+    attributes:
+      id:
+        identifier: true
+        pattern: "^mech:[a-z0-9_]+$"
+      label:
+        required: true
+      direction:
+        range: Direction
+        required: true
+      forcing_variables:
+        multivalued: true
+      response_variables:
+        multivalued: true
+      constitutive_link:
+        description: The physics connecting forcing and response. Blank for method transfers.
+      compartments:
+        multivalued: true
+      probe_query:
+        description: The exact title_and_abstract.search expression used in the 2026-11-03 probe.
+        required: true
+      probe_hits:
+        range: integer
+        description: Raw count, an upper bound with no precision check.
+        required: true
+      status:
+        range: Status
+        required: true
+      evidence:
+        multivalued: true
+        description: OpenAlex work IDs, added under review in M5.
+
+  MechanismRegistry:
+    attributes:
+      description: {}
+      mechanisms:
+        multivalued: true
+        inlined_as_list: true
+        range: CouplingMechanism
+
+  Assertion:
+    description: >-
+      An L2 or L3 edge. Provenance is mandatory, and text is stored as offsets because abstracts
+      must not be redistributed.
+    attributes:
+      source: {required: true}
+      target: {required: true}
+      edge_type: {required: true}
+      layer: {required: true}
+      work_id: {required: true}
+      char_start: {range: integer, required: true}
+      char_end: {range: integer, required: true}
+      extractor_version: {required: true}
+      confidence: {range: float, required: true}
+      tier: {required: true}

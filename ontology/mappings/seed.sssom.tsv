@@ -1,0 +1,39 @@
+# mapping_set_id: https://github.com/Denolle-Lab/seismohydro-knowledge-graph/ontology/mappings/seed.sssom.tsv
+# mapping_set_description: Seed mappings. Each external IRI was confirmed to exist on 2026-11-03. The match type is unreviewed.
+# license: https://creativecommons.org/licenses/by/4.0/
+# curie_map:
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   semapv: https://w3id.org/semapv/vocab/
+#   ENVO: http://purl.obolibrary.org/obo/ENVO_
+#   sophgs: http://sweetontology.net/phenGeolSeismicity/
+#   sophhy: http://sweetontology.net/phenHydro/
+#   sophwn: http://sweetontology.net/phenWaveNoise/
+#   qudt: http://qudt.org/vocab/quantitykind/
+#   csdms: https://csdms.colorado.edu/wiki/CSN_Searchable_List#
+#   sosa: http://www.w3.org/ns/sosa/
+#   hyf: https://www.opengis.net/def/schema/hy_features/hyf/
+subject_id	subject_label	predicate_id	object_id	object_label	mapping_justification
+shared:vadose_zone	vadose zone	skos:exactMatch	ENVO:00000328	vadose zone	semapv:ManualMappingCuration
+shared:saturated_zone	saturated zone	skos:relatedMatch	ENVO:00012408	aquifer	semapv:ManualMappingCuration
+shared:river_channel	river channel	skos:relatedMatch	ENVO:00000022	river	semapv:ManualMappingCuration
+shared:snowpack	snowpack	skos:relatedMatch	ENVO:01000406	snow	semapv:ManualMappingCuration
+shared:fault_zone	fault zone	skos:relatedMatch	ENVO:01000668	geological fault	semapv:ManualMappingCuration
+shared:pore_pressure	pore pressure	skos:broadMatch	qudt:Pressure	Pressure	semapv:ManualMappingCuration
+shared:strain	strain	skos:exactMatch	qudt:Strain	Strain	semapv:ManualMappingCuration
+shared:permeability	permeability	skos:exactMatch	qudt:Permeability	Permeability	semapv:ManualMappingCuration
+seis:earthquake	earthquake	skos:exactMatch	sophgs:Earthquake	Earthquake	semapv:ManualMappingCuration
+seis:aftershock	aftershock	skos:exactMatch	sophgs:Aftershock	Aftershock	semapv:ManualMappingCuration
+seis:tremor	tremor	skos:exactMatch	sophgs:Tremor	Tremor	semapv:ManualMappingCuration
+seis:ambient_noise_correlation	ambient noise cross-correlation	skos:relatedMatch	sophwn:AmbientNoise	AmbientNoise	semapv:ManualMappingCuration
+seis:seismic_moment	seismic moment	skos:exactMatch	csdms:earth_interior_earthquake__seismic_moment	earth_interior_earthquake__seismic_moment	semapv:ManualMappingCuration
+seis:broadband_seismometer	broadband seismometer	skos:broadMatch	sosa:Sensor	Sensor	semapv:ManualMappingCuration
+hydro:baseflow	baseflow	skos:exactMatch	sophhy:BaseFlow	BaseFlow	semapv:ManualMappingCuration
+hydro:flood	flood	skos:exactMatch	sophhy:Flood	Flood	semapv:ManualMappingCuration
+hydro:infiltration	infiltration	skos:exactMatch	sophhy:Infiltration	Infiltration	semapv:ManualMappingCuration
+hydro:groundwater_storage	groundwater storage	skos:exactMatch	sophhy:GroundwaterStorage	GroundwaterStorage	semapv:ManualMappingCuration
+hydro:streamflow	streamflow	skos:closeMatch	csdms:channel_water_x-section__volume_flow_rate	channel_water_x-section__volume_flow_rate	semapv:ManualMappingCuration
+hydro:bedload_transport	bedload transport	skos:relatedMatch	csdms:channel_water_sediment~bedload__volume_flow_rate	channel_water_sediment~bedload__volume_flow_rate	semapv:ManualMappingCuration
+hydro:stream_gauge	stream gauge	skos:broadMatch	sosa:Sensor	Sensor	semapv:ManualMappingCuration
+hydro:hydraulic_head	hydraulic head	skos:relatedMatch	shared:pore_pressure	pore pressure	semapv:ManualMappingCuration
+hydro:soil_moisture	soil moisture	skos:relatedMatch	shared:saturation	water saturation	semapv:ManualMappingCuration
+seis:dv_v	relative velocity change	skos:relatedMatch	shared:effective_stress	effective stress	semapv:ManualMappingCuration

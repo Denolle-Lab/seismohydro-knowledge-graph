@@ -1,0 +1,48 @@
+# Hydrology vocabulary, seed entries for review in M3 by a hydrologist. Target: 150 to 300 concepts.
+# Drafted without hydrologist review, so expect corrections and additions.
+domain: hydrology
+description: Sensors, observables, methods and models of hydrology, in its own terms.
+concepts:
+  # Processes
+  - {id: "hydro:infiltration", concept_type: Process, label: infiltration, status: seed}
+  - {id: "hydro:recharge", concept_type: Process, label: groundwater recharge, status: seed, synonyms: [recharge, aquifer recharge]}
+  - {id: "hydro:baseflow", concept_type: Process, label: baseflow, status: seed}
+  - {id: "hydro:snowmelt", concept_type: Process, label: snowmelt, status: seed}
+  - {id: "hydro:bedload_transport", concept_type: Process, label: bedload transport, status: seed, synonyms: [bedload, sediment transport]}
+  - {id: "hydro:pore_pressure_diffusion", concept_type: Process, label: pore pressure diffusion, status: seed, synonyms: [hydraulic diffusion]}
+  - {id: "hydro:freeze_thaw", concept_type: Process, label: freeze-thaw, status: seed, synonyms: [freeze-thaw cycle]}
+  # Hazards
+  - {id: "hydro:flood", concept_type: Hazard, label: flood, status: seed, synonyms: [flooding, flash flood]}
+  - {id: "hydro:drought", concept_type: Hazard, label: drought, status: seed, synonyms: [hydrological drought]}
+  # State variables, in hydrologic terms
+  - {id: "hydro:hydraulic_head", concept_type: StateVariable, label: hydraulic head, status: seed, synonyms: [water table elevation, piezometric head]}
+  - {id: "hydro:groundwater_storage", concept_type: StateVariable, label: groundwater storage, status: seed, synonyms: [aquifer storage]}
+  - {id: "hydro:terrestrial_water_storage", concept_type: StateVariable, label: terrestrial water storage, status: seed, synonyms: [TWS, total water storage]}
+  - {id: "hydro:soil_moisture", concept_type: StateVariable, label: soil moisture, status: seed, synonyms: [soil water content]}
+  - {id: "hydro:snow_water_equivalent", concept_type: StateVariable, label: snow water equivalent, status: seed, synonyms: [SWE]}
+  - {id: "hydro:hydraulic_diffusivity", concept_type: StateVariable, label: hydraulic diffusivity, status: seed}
+  - {id: "hydro:specific_yield", concept_type: StateVariable, label: specific yield, status: seed, synonyms: [storativity]}
+  # Observables
+  - {id: "hydro:streamflow", concept_type: Observable, label: streamflow, status: seed, synonyms: [river discharge, discharge]}
+  - {id: "hydro:river_stage", concept_type: Observable, label: river stage, status: seed, synonyms: [gauge height]}
+  - {id: "hydro:well_water_level", concept_type: Observable, label: well water level, status: seed, synonyms: [groundwater level, depth to water], proxy_for: ["hydro:hydraulic_head"]}
+  - {id: "hydro:precipitation", concept_type: Observable, label: precipitation, status: seed, synonyms: [rainfall]}
+  # Sensors
+  - {id: "hydro:piezometer", concept_type: Sensor, label: piezometer, status: seed, synonyms: [monitoring well, pressure transducer]}
+  - {id: "hydro:stream_gauge", concept_type: Sensor, label: stream gauge, status: seed, synonyms: [gauging station]}
+  - {id: "hydro:soil_moisture_probe", concept_type: Sensor, label: soil moisture probe, status: seed, synonyms: [TDR probe]}
+  - {id: "hydro:gravity_satellite", concept_type: Sensor, label: satellite gravimetry, status: seed, synonyms: [GRACE, GRACE-FO]}
+  - {id: "hydro:cosmic_ray_probe", concept_type: Sensor, label: cosmic-ray neutron sensor, status: seed}
+  # Methods
+  - {id: "hydro:baseflow_separation", concept_type: Method, label: baseflow separation, status: seed}
+  - {id: "hydro:pumping_test", concept_type: Method, label: pumping test, status: seed, synonyms: [aquifer test, slug test]}
+  - {id: "hydro:data_assimilation", concept_type: Method, label: data assimilation, status: seed, typical_approach: "shared:hybrid", synonyms: [ensemble Kalman filter, EnKF]}
+  - {id: "hydro:hydrograph_analysis", concept_type: Method, label: hydrograph analysis, status: seed, synonyms: [recession analysis]}
+  - {id: "hydro:lstm_rainfall_runoff", concept_type: Method, label: LSTM rainfall-runoff modeling, status: seed, typical_approach: "shared:data_driven"}
+  # Physical models
+  - {id: "hydro:darcy_law", concept_type: PhysicalModel, label: "Darcy's law", status: seed}
+  - {id: "hydro:richards_equation", concept_type: PhysicalModel, label: Richards equation, status: seed, equation_class: parabolic}
+  - {id: "hydro:groundwater_flow_equation", concept_type: PhysicalModel, label: groundwater flow equation, status: seed, equation_class: parabolic, synonyms: [diffusion equation]}
+  - {id: "hydro:saint_venant", concept_type: PhysicalModel, label: Saint-Venant equations, status: seed, equation_class: hyperbolic, synonyms: [shallow water equations]}
+  # Datasets
+  - {id: "hydro:nwis", concept_type: Dataset, label: USGS National Water Information System, status: seed, synonyms: [NWIS, USGS NWIS]}

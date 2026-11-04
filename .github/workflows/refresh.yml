@@ -1,0 +1,40 @@
+name: refresh
+
+# Monthly pull of works published in the trailing 24 months. Free-tier keys cannot filter by
+# update date. Scheduled runs stay off until ENABLE_SCHEDULED_RUNS is true.
+
+on:
+  schedule:
+    - cron: "0 6 3 * *"
+  workflow_dispatch:
+    inputs:
+      max_usd:
+        description: Spending cap for this run, in USD
+        default: "0.25"
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    if: github.event_name == 'workflow_dispatch' || vars.ENABLE_SCHEDULED_RUNS == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+      MAX_USD: ${{ inputs.max_usd || '0.25' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.3
+      - run: uv sync --frozen
+      - run: uv run shkg ingest --window-months 24 --max-usd "$MAX_USD"
+      - run: uv run shkg graph build
+      - run: uv run shkg graph validate
+      # Tables and manifests only. Raw records hold abstract indexes and must never be uploaded.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: graph-refresh
+          retention-days: 90
+          path: |
+            data/graph/*.parquet
+            data/manifests/

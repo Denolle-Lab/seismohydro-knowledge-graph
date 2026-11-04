@@ -1,0 +1,40 @@
+# Seismology vocabulary, seed entries for review in M3. Target: 150 to 300 concepts.
+# Scale bounds are left empty on purpose: each one needs a cited source.
+domain: seismology
+description: Sensors, observables, methods and models of seismology, in its own terms.
+concepts:
+  # Processes
+  - {id: "seis:earthquake", concept_type: Process, label: earthquake, status: seed, synonyms: [seismic event]}
+  - {id: "seis:aftershock", concept_type: Process, label: aftershock, status: seed}
+  - {id: "seis:tremor", concept_type: Process, label: tremor, status: seed, synonyms: [tectonic tremor]}
+  - {id: "seis:microseism", concept_type: Process, label: microseism, status: seed, synonyms: [ocean microseism, microseismic noise]}
+  - {id: "seis:induced_seismicity", concept_type: Process, label: induced seismicity, status: seed, synonyms: [injection-induced seismicity]}
+  - {id: "seis:triggered_seismicity", concept_type: Process, label: triggered seismicity, status: seed, synonyms: [dynamic triggering, remote triggering]}
+  # Observables
+  - {id: "seis:dv_v", concept_type: Observable, label: relative velocity change, status: seed, synonyms: [dv/v, seismic velocity change, velocity variation], proxy_for: ["shared:saturation", "shared:pore_pressure", "shared:effective_stress"]}
+  - {id: "seis:vs", concept_type: Observable, label: shear wave velocity, status: seed, synonyms: [Vs, S-wave velocity]}
+  - {id: "seis:vp", concept_type: Observable, label: compressional wave velocity, status: seed, synonyms: [Vp, P-wave velocity]}
+  - {id: "seis:seismic_noise_psd", concept_type: Observable, label: seismic noise power spectral density, status: seed, synonyms: [noise PSD, seismic power]}
+  - {id: "seis:seismicity_rate", concept_type: Observable, label: seismicity rate, status: seed, synonyms: [earthquake rate]}
+  - {id: "seis:seismic_moment", concept_type: Observable, label: seismic moment, status: seed}
+  - {id: "seis:attenuation", concept_type: Observable, label: seismic attenuation, status: seed, synonyms: [quality factor, Q]}
+  # Sensors
+  - {id: "seis:broadband_seismometer", concept_type: Sensor, label: broadband seismometer, status: seed}
+  - {id: "seis:geophone", concept_type: Sensor, label: geophone, status: seed, synonyms: [nodal seismometer, nodal geophone]}
+  - {id: "seis:das", concept_type: Sensor, label: distributed acoustic sensing, status: seed, synonyms: [DAS, fiber-optic sensing]}
+  - {id: "seis:strainmeter", concept_type: Sensor, label: strainmeter, status: seed, synonyms: [borehole strainmeter]}
+  # Methods
+  - {id: "seis:ambient_noise_correlation", concept_type: Method, label: ambient noise cross-correlation, status: seed, synonyms: [ambient noise interferometry, seismic interferometry, noise correlation]}
+  - {id: "seis:coda_wave_interferometry", concept_type: Method, label: coda wave interferometry, status: seed, synonyms: [CWI]}
+  - {id: "seis:hvsr", concept_type: Method, label: horizontal-to-vertical spectral ratio, status: seed, synonyms: [HVSR, H/V]}
+  - {id: "seis:receiver_function", concept_type: Method, label: receiver function, status: seed}
+  - {id: "seis:seismic_refraction", concept_type: Method, label: seismic refraction, status: seed}
+  - {id: "seis:full_waveform_inversion", concept_type: Method, label: full waveform inversion, status: seed, typical_approach: "shared:hybrid", synonyms: [FWI]}
+  - {id: "seis:phase_picking_ml", concept_type: Method, label: machine-learning phase picking, status: seed, typical_approach: "shared:data_driven", synonyms: [deep-learning phase picker]}
+  # Physical models
+  - {id: "seis:elastic_wave_equation", concept_type: PhysicalModel, label: elastic wave equation, status: seed, equation_class: hyperbolic}
+  - {id: "seis:gassmann", concept_type: PhysicalModel, label: Gassmann fluid substitution, status: seed, synonyms: [Gassmann equation]}
+  - {id: "seis:coulomb_failure", concept_type: PhysicalModel, label: Coulomb failure criterion, status: seed, synonyms: [Coulomb stress]}
+  - {id: "seis:rate_state_friction", concept_type: PhysicalModel, label: rate-and-state friction, status: seed}
+  # Datasets
+  - {id: "seis:fdsn_archive", concept_type: Dataset, label: FDSN data archives, status: seed, synonyms: [FDSN, EarthScope data]}

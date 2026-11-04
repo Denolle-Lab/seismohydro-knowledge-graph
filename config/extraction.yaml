@@ -1,0 +1,57 @@
+# Used from milestones M3 and M4. The stubs in src/seismohydro_kg/extract do not read this yet.
+#
+# Haiku 5.5 is the extractor, decided by the PI on 2026-11-03 to keep costs down.
+# The gold set checks it against the thresholds below. Fallback models run on the gold set only
+# if Haiku fails, and moving bulk extraction to one of them is a separate decision.
+bulk_model: claude-haiku-5-5
+fallback_models:
+  - claude-sonnet-5-5
+  - claude-opus-5-5
+# Thinking tokens bill as output and the cost table assumes none. Haiku 5.5 thinks by default,
+# so measure with it disabled first (accepted at effort high or below).
+thinking: disabled
+# Cache the shared prompt and schema. Check cache_read_input_tokens in the first batch, because
+# a prefix under the model's minimum (512 tokens for Haiku 5.5) silently does not cache.
+prompt_caching: true
+
+thresholds:
+  entity_precision: 0.85
+  relation_precision: 0.75
+
+# Assumptions behind the cost table in ROADMAP.md. Replace with measured values at M4.
+cost_assumptions:
+  input_tokens_per_abstract: 1850
+  cached_tokens_per_abstract: 1500
+  output_tokens_per_abstract: 400
+  batch_discount: 0.5
+  # USD per million tokens, from the claude-api reference table cached 2026-10-06.
+  price_usd_per_mtok:
+    claude-haiku-5-5: { input: 0.10, output: 0.50 }
+    claude-sonnet-5-5: { input: 2.00, output: 10.00 }
+    claude-opus-5-5: { input: 4.00, output: 20.00 }
+
+# M3. Open extraction before the schema is frozen: types are suggested, the vocabulary is not fixed.
+# Sampled by the work-level interdisciplinarity score from M2 for the high_score_bridge stratum.
+discovery_sample:
+  seismology_only: 1000
+  hydrology_only: 1000
+  high_score_bridge: 1000
+  application: 1000
+
+# M4. 300 abstracts. Annotate before seeing any LLM output, with pre-2015 works in every stratum.
+gold_set:
+  strata:
+    bridge_keyword: 100  # across the 11 mechanisms and the 4 application sets
+    bridge_citation: 50  # cites both fields, no keyword hit; needs the M2 citation graph
+    seismology_only: 60
+    hydrology_only: 60
+    hard_negative: 30  # seismic dam design, electrical "discharge", water treatment
+  prompt_tuning_holdout: 50  # used for tuning prompts, excluded from scoring
+
+# M4. Which abstracts the LLM reads. Vocabulary matching runs on every work.
+tiers:
+  full_sets: [bridge_keyword_and, seismology_topics_x_hydro_keyword, hydrology_topics_x_seismo_keyword]
+  sampled_sets:
+    core_fraction: 0.05  # seismology_core, hydrology_core
+    application_fraction: 0.20  # resource_management, disaster_management, landslides, subsurface_operations
+  stratify_by: [domain, publication_decade, primary_source]

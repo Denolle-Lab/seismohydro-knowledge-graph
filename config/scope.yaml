@@ -1,0 +1,145 @@
+# What goes in the corpus. Seed values from the probes in docs/scoping-2026-11-03.md.
+# Adjudicated in milestone M1, against the recall and precision audits.
+#
+# OpenAlex subfields are not used: subfield 2312 is led by adsorption and membrane work.
+
+work_types: [article, review, preprint]
+
+keywords:
+  seismo: "seismology OR seismic OR seismometer OR earthquake OR microseism"
+  hydro: "hydrology OR hydrological OR groundwater OR aquifer OR streamflow"
+
+topic_groups:
+  seismology_core:
+    - T10110  # earthquake and tectonic studies
+    - T10271  # Seismic Imaging and Inversion Techniques
+    - T11757  # Seismic Waves and Analysis
+    - T12424  # Earthquake Detection and Analysis
+    - T13018  # Seismology and Earthquake Studies (filed under Artificial Intelligence)
+    - T13885  # Geophysics and Sensor Technology
+    - T10572  # Geophysical and Geoelectrical Methods (mostly not seismic; review in M1)
+  hydrology_core:
+    - T10330  # Hydrology and Watershed Management Studies
+    - T10894  # Groundwater flow and contamination studies
+    - T10577  # Hydrology and Sediment Transport Processes
+    - T10716  # Soil and Unsaturated Flow
+    - T11186  # Hydrology and Drought Analysis
+    - T12543  # Groundwater and Watershed Analysis
+    - T11490  # Hydrological Forecasting Using AI
+    - T12083  # Karst Systems and Hydrogeology
+    - T10398  # Groundwater and Isotope Geochemistry
+    - T11312  # Soil Moisture and Remote Sensing
+    - T10930  # Flood Risk Assessment and Management
+  # Earthquake engineering and disaster studies. Out of the core corpus, allowed in bridge sets.
+  engineering_exclude:
+    - T10160  # Seismic Performance and Analysis
+    - T12233  # Geotechnical Engineering and Underground Structures
+    - T11352  # Masonry and Concrete Structural Analysis
+    - T10690  # Vibration Control and Rheological Fluids
+    - T10747  # Disaster Management and Resilience
+    - T13800  # Earthquake and Disaster Impact Studies
+
+  # Literature on decisions and hazards. Never ingested whole: these topics are mostly social
+  # science, policy or engineering, so sets below cross them with both fields' keywords.
+  application_resource_management:
+    - T10969  # Water resources management and optimization
+    - T13375  # Integrated Water Resources Management
+    - T14232  # Water Resource Management and Quality
+    - T12911  # Water Resources and Sustainability
+  application_disaster_management:
+    - T10747  # Disaster Management and Resilience
+    - T13800  # Earthquake and Disaster Impact Studies
+    - T14146  # Earthquake and Tsunami Effects
+  application_landslides:
+    - T10535  # Landslides and related hazards
+  application_subsurface_operations:
+    - T11302  # CO2 Sequestration and Geologic Interactions
+    - T11225  # Geothermal Energy Systems and Applications
+    - T10491  # Enhanced Oil Recovery Techniques
+
+# role: core | bridge are ingested. role: audit is counted by scope-report and never ingested.
+# baseline: live counts from 2026-11-03. scope-report compares against these.
+sets:
+  seismology_core:
+    domain: seismology
+    role: core
+    topics: seismology_core
+    baseline: { count: 335680, with_abstract: 202459 }
+  hydrology_core:
+    domain: hydrology
+    role: core
+    topics: hydrology_core
+    baseline: { count: 578098, with_abstract: 344494 }
+  bridge_keyword_and:
+    domain: bridge
+    role: bridge
+    search: "({seismo}) AND ({hydro})"
+    baseline: { count: 9533, with_abstract: 7096 }
+  seismology_topics_x_hydro_keyword:
+    domain: bridge
+    role: bridge
+    topics: seismology_core
+    search: "{hydro}"
+    baseline: { count: 12368 }
+  hydrology_topics_x_seismo_keyword:
+    domain: bridge
+    role: bridge
+    topics: hydrology_core
+    search: "{seismo}"
+    baseline: { count: 2097 }
+  resource_management_x_keywords:
+    domain: application
+    role: bridge
+    topics: application_resource_management
+    search: "({seismo}) OR ({hydro})"
+    baseline: { count: 19395 }
+  disaster_management_x_keywords:
+    domain: application
+    role: bridge
+    topics: application_disaster_management
+    search: "({seismo}) OR ({hydro})"
+    baseline: { count: 25433 }
+  landslides_x_keywords:
+    domain: application
+    role: bridge
+    topics: application_landslides
+    search: "({seismo}) OR ({hydro})"
+    baseline: { count: 13300 }
+  subsurface_operations_x_keywords:
+    domain: application
+    role: bridge
+    topics: application_subsurface_operations
+    search: "({seismo}) OR ({hydro})"
+    baseline: { count: 12392 }
+  seismo_keyword_audit:
+    domain: seismology
+    role: audit
+    search: "{seismo}"
+    baseline: { count: 581343, with_abstract: 408972 }
+  hydro_keyword_audit:
+    domain: hydrology
+    role: audit
+    search: "{hydro}"
+    baseline: { count: 545561, with_abstract: 377109 }
+  seismo_keyword_no_engineering_audit:
+    domain: seismology
+    role: audit
+    search: "{seismo}"
+    exclude_topics: engineering_exclude
+
+# Candidates for M1, not used by any query yet. IDs came from a name search that returned the
+# first match, so each one needs a look before use. Multidisciplinary journals would need a
+# keyword filter on top.
+candidate_journals:
+  - { id: S204847658, name: Water Resources Research, works: 23581 }
+  - { id: S55737203, name: Journal of Hydrology, works: 30126 }
+  - { id: S93121129, name: Hydrology and Earth System Sciences, works: 19663 }
+  - { id: S75830442, name: Hydrological Processes, works: 11155 }
+  - { id: S59098468, name: Bulletin of the Seismological Society of America, works: 13296 }
+  - { id: S183957208, name: Seismological Research Letters, works: 7265 }
+  - { id: S108821158, name: Geophysical Journal International, works: 20474 }
+  - { id: S4210228715, name: "JGR Solid Earth", works: 8274, note: "looks low; older JGR may sit under another source ID" }
+  - { id: S4387284412, name: Seismica, works: 323 }
+  - { id: S36624081, name: Geophysical Research Letters, works: 53758, note: multidisciplinary }
+  - { id: S4210169354, name: Earth Surface Dynamics, works: 2815 }
+  # "Groundwater" still needs its ID: the search returned Groundwater for Sustainable Development.
