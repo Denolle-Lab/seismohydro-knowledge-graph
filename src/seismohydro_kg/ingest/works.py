@@ -40,6 +40,8 @@ SELECT_FIELDS = [
     "abstract_inverted_index",
 ]
 PAGES_PER_PART = 100
+ID_CHUNK = 50
+PER_PAGE = 100
 
 
 @dataclass
@@ -105,3 +107,34 @@ def ingest_set(client: OpenAlexClient, set_name: str, filter_: str, raw_root: Pa
         # Also runs on API errors: what was paid for is kept, with the cursor that follows it.
         flush()
     return IngestResult(set_name, state["works_written"], state["done"], stopped)
+
+
+def ingest_ids(
+    client: OpenAlexClient, set_name: str, work_ids: list[str], raw_root: Path
+) -> IngestResult:
+    """Fetch named works into one part file, for a hand-picked set such as the starter 100.
+
+    Each request names at most ID_CHUNK works and needs no paging, so this works without a key.
+    Rerunning replaces the part file.
+    """
+    out_dir = raw_root / set_name
+    out_dir.mkdir(parents=True, exist_ok=True)
+    records: list[dict[str, Any]] = []
+    stopped: str | None = None
+    try:
+        for start in range(0, len(work_ids), ID_CHUNK):
+            chunk = work_ids[start : start + ID_CHUNK]
+            payload = client.get(
+                "/works",
+                {
+                    "filter": "ids.openalex:" + "|".join(chunk),
+                    "select": ",".join(SELECT_FIELDS),
+                    "per_page": PER_PAGE,
+                },
+            )
+            records.extend(payload["results"])
+    except BudgetExceeded as exc:
+        stopped = str(exc)
+    if records:
+        _write_part(out_dir / "part-00000.jsonl.gz", records)
+    return IngestResult(set_name, len(records), stopped is None, stopped)

@@ -2,7 +2,7 @@
 
 Seismology and hydrology study the same subsurface with different sensors, vocabularies and physics. This project builds a knowledge graph of each discipline from the scientific literature, joins them through an explicit layer describing how water and elastic waves interact, and uses the result to find research opportunities between the two fields.
 
-**Status:** scaffold (milestone M0). Nothing has been ingested at scale yet, and the opportunity map does not exist yet. See [ROADMAP.md](ROADMAP.md).
+**Status:** scaffold (milestone M0). Nothing has been ingested at scale yet, and the opportunity map does not exist yet. See [ROADMAP.md](ROADMAP.md). A first graph from 100 hand-picked papers can be built in minutes: see the [student quickstart](docs/student-quickstart.md).
 
 ## How the graph is organized
 
@@ -41,6 +41,7 @@ uv run shkg graph validate
 |---|---|---|---|
 | `shkg scope-report` | Counts each corpus set, compares with the baseline | About $0.01 | Now |
 | `shkg ingest` | Downloads works, resumable | Up to $1.86 for the full corpus | Now, needs a key |
+| `shkg fulltext` | Downloads full text from OpenAlex, within a required cap ([runbook](docs/download-runbook.md)) | $0.01 per file | Now, needs a key |
 | `shkg graph build`, `validate`, `export` | Builds Parquet tables, checks them, exports to Neo4j or GraphML | Local | Now |
 | `shkg ontology validate` | Checks vocabularies against the LinkML schema | Local | Now |
 | `shkg extract gazetteer` | Matches vocabulary terms in text | Local | M4 |

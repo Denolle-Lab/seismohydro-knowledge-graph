@@ -5,6 +5,7 @@ openalex:
     list: 0.0001      # list + filter, including group_by on a list
     search: 0.001     # any .search filter, including group_by on a search
     singleton: 0.0    # get single entity
+    content: 0.01     # one full-text file, PDF or TEI XML. A HEAD request is free.
   usd_per_credit: 0.0001  # a search costs 10 credits and $0.001
   daily_usd:
     no_key: 0.10

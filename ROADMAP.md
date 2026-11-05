@@ -23,9 +23,9 @@ The order matters. The discovery pass in M3 samples using a score computed in M2
 
 **M2.** How much do the two fields cite each other, and has that changed? This is the first scientific result, and it needs no LLM. M2 also scores each work on how much it spans the fields, from how its references split, which vocabularies it mixes, and who cites it. Seismohydrology is then measured rather than assumed from a keyword intersection, which also tests whether it is a coherent field at all.
 
-**M3.** What nodes and edges does the literature itself support? Hand-seeded concepts would mostly return what we put in, so open extraction comes before the schema is frozen. Saturation curves decide how large the vocabulary needs to be. The [100-paper starter set](docs/starter-set-100.md) can pilot this before the full run. The pass also tests the 18 proposed node types and shows how many of the hand-written seeds appear bottom-up. SWEET and the CSDMS Standard Names cover seismic phenomena and quantities, but we have not found formal coverage of seismological methods or sensors, so that part probably has to be built here.
+**M3.** What nodes and edges does the literature itself support? Hand-seeded concepts would mostly return what we put in, so open extraction comes before the schema is frozen. Saturation curves decide how large the vocabulary needs to be. The [100-paper starter set](docs/starter-set-100.md) pilots this before the full run: `make starter` already builds a graph from it with vocabulary matching alone ([quickstart](docs/student-quickstart.md)). The pass also tests the 18 proposed node types and shows how many of the hand-written seeds appear bottom-up. SWEET and the CSDMS Standard Names cover seismic phenomena and quantities, but we have not found formal coverage of seismological methods or sensors, so that part probably has to be built here.
 
-**M4.** Is Haiku 5.5 good enough? It is the chosen extractor, and the gold set checks it against the thresholds. If it fails, Sonnet 5.5 and Opus 5.5 run on the gold set only (about $3.50), and moving bulk extraction to either one is a separate decision. The gold set is mostly bridge papers, but it keeps single-domain strata because a missed mention in one field later looks like a research gap.
+**M4.** Is Haiku 5.5 good enough? It is the chosen extractor, and the gold set checks it against the thresholds. If it fails, Sonnet 5.5 and Opus 5.5 run on the gold set only (about $3.50), and moving bulk extraction to either one is a separate decision. A local model, starting with OLMo 3 7B, runs on the same gold set through the same checks (ADR 0007), because it would keep text on our machines and make reruns free. The gold set is mostly bridge papers, but it keeps single-domain strata because a missed mention in one field later looks like a research gap.
 
 **M5.** Which mechanisms have real support? The 11 seeds in `ontology/coupling/mechanisms.yaml` come with raw keyword counts and no precision check.
 
@@ -46,7 +46,7 @@ Rates are from the [OpenAlex price list](https://help.openalex.org/access/exampl
 
 A free key allows $1 per day, so the first download takes two days and resumes on its own.
 
-**LLM extraction.** Haiku 5.5 is the chosen model; the other rows show what a fallback would cost. Token counts of 1,850 input and 400 output per abstract are assumptions, to be replaced with measurements at M4, and they assume no thinking tokens, so Haiku runs with thinking disabled unless the gold set says otherwise. Prices are list prices with the 50% batch discount. Opus 5.5 cannot disable thinking, so its figures are lower bounds.
+**LLM extraction.** Haiku 5.5 is the chosen model; the other rows show what a fallback would cost. Token counts of 1,850 input and 400 output per abstract are assumptions, to be replaced with measurements at M4, and they assume no thinking tokens. Haiku 5.5 thinks by default, so it runs at low effort, and the gold set measures how many thinking tokens remain. The tokenizer may also count up to about 30% more than assumed. Prices are list prices with the 50% batch discount. Opus 5.5 cannot disable thinking, so its figures are lower bounds.
 
 The subset is about 55k abstracts: up to about 18k bridge, about 27k from a 5% core sample, and about 10k from a 20% application sample. The full corpus is about 614k.
 
@@ -59,7 +59,7 @@ The subset is about 55k abstracts: up to about 18k bridge, about 27k from a 5% c
 
 The caching row assumes about 1,500 of the 1,850 input tokens are a shared prefix read at 0.1 times the input price, with the batch discount stacking on top. Check the real hit rate in the first batch. The discovery pass adds about $0.80 for 4,000 abstracts, perhaps double because open extraction returns more.
 
-Full text is out of the first pass. OpenAlex charges $0.01 per TEI XML file, so the top 500 bridge papers would cost $5. M4 decides whether abstracts are too thin for methods.
+Full text comes from OpenAlex, not publisher links: on 2026-11-04, 29 of 44 publisher PDF links for the starter set returned HTTP 403, including Wiley and AGU. OpenAlex charges $0.01 per file and holds about 20 to 31% of our works, measured by `has_content` on 2026-11-04. The first step is a 500-paper pilot in TEI XML for about $5, paid personally by the PI for now and run from the [download runbook](docs/download-runbook.md). 10,000 files would cost about $100, and M4 decides whether that is worth it by comparing what full text and abstracts yield.
 
 ## Automation
 

@@ -10,7 +10,7 @@ import pytest
 from seismohydro_kg.openalex.budget import BudgetGuard
 from seismohydro_kg.openalex.client import OpenAlexClient
 
-RATES = {"list": 0.0001, "search": 0.001, "singleton": 0.0}
+RATES = {"list": 0.0001, "search": 0.001, "singleton": 0.0, "content": 0.01}
 
 
 @pytest.fixture(autouse=True)

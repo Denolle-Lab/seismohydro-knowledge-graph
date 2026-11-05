@@ -1,15 +1,54 @@
-# Used from milestones M3 and M4. The stubs in src/seismohydro_kg/extract do not read this yet.
+# Used from milestones M3 and M4, and by `shkg extract llm` on small sets such as the starter 100.
 #
 # Haiku 5.5 is the extractor, decided by the PI on 2026-11-03 to keep costs down.
 # The gold set checks it against the thresholds below. Fallback models run on the gold set only
 # if Haiku fails, and moving bulk extraction to one of them is a separate decision.
+#
+# Models plug in here. `--provider` picks one; adapters are in src/seismohydro_kg/extract/providers.
+# Every provider gets the same prompt and the same checks on its output (ADR 0007).
+default_provider: claude
+providers:
+  claude:
+    adapter: claude
+    model: claude-haiku-5-5
+    thinking: adaptive
+    effort: low
+    prompt_caching: true
+  olmo:
+    # Any OpenAI-compatible server. Model ID and context length read from Hugging Face 2026-11-05.
+    # No custom code required by its config. Not yet run on this project's text.
+    adapter: openai_compatible
+    model: allenai/Olmo-3-7B-Instruct
+    # Port chosen to avoid 8000, which other tools commonly hold. Override with SHKG_LOCAL_BASE_URL.
+    base_url: http://127.0.0.1:18000/v1
+
+# Used by `shkg extract llm` for every provider.
+max_output_tokens: 8000
+# Self-reported scores are not calibrated, so LLM edges carry this until the gold set scores them.
+unscored_confidence: 0.5
+# Real-time calls cost twice the batch price, so metered runs above this size wait for M4 batches.
+realtime_work_limit: 1000
+# Placeholder set from docs/node-types.md and docs/design.md. M3 derives and freezes the real one.
+provisional_predicates:
+  uses_method_on: A method is applied to a target variable, compartment or setting.
+  measures: A sensor, observable or method measures a variable.
+  responds_to: A variable or observable changes in response to a forcing.
+  proxy_for: An observable is used to infer a variable it does not directly measure.
+  addresses_task: The study (WORK) carries out a task such as detection or forecasting.
+  reports_gap: The study (WORK) states a limitation or unmet need.
+  studied_in: The study (WORK) was done in a setting, region, compartment or event.
+  informs_decision: The study (WORK) states use for a decision or decision domain.
+
 bulk_model: claude-haiku-5-5
 fallback_models:
   - claude-sonnet-5-5
   - claude-opus-5-5
-# Thinking tokens bill as output and the cost table assumes none. Haiku 5.5 thinks by default,
-# so measure with it disabled first (accepted at effort high or below).
-thinking: disabled
+# Thinking tokens bill as output and the cost table assumes none. Haiku 5.5 thinks by default.
+# The Claude API reference advises lowering effort instead of disabling thinking: at low effort it
+# can skip thinking on simple requests, and with thinking off it can skip a needed tool call when
+# the request also asks for JSON. Measure token use and accuracy at low and medium on the gold set.
+thinking: adaptive
+effort: low
 # Cache the shared prompt and schema. Check cache_read_input_tokens in the first batch, because
 # a prefix under the model's minimum (512 tokens for Haiku 5.5) silently does not cache.
 prompt_caching: true

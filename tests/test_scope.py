@@ -89,8 +89,6 @@ def test_report_stops_at_the_cap_and_keeps_partial_results(make_client):
     ("command", "milestone"),
     [
         (["extract", "discovery", "--max-usd", "1"], "M3"),
-        (["extract", "gazetteer"], "M4"),
-        (["extract", "llm", "--max-usd", "1"], "M4"),
         (["opportunities"], "M6"),
         (["holdout"], "M6"),
     ],

@@ -25,6 +25,7 @@ def test_uploads_never_include_raw_data(path):
         if "upload-artifact" in step.get("uses", ""):
             uploaded = step["with"]["path"]
             assert "raw" not in uploaded
+            assert "fulltext" not in uploaded
             assert "data/\n" not in uploaded and uploaded.strip() != "data"
 
 

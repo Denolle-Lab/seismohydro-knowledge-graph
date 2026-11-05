@@ -174,7 +174,7 @@ def ontology_edges() -> Iterator[dict]:
                 }
 
 
-def _read_raw(path: Path) -> Iterable[dict[str, Any]]:
+def read_raw(path: Path) -> Iterable[dict[str, Any]]:
     opener = gzip.open if path.suffix == ".gz" else open
     with opener(path, "rt", encoding="utf-8") as handle:
         for line in handle:
@@ -196,7 +196,7 @@ def build_graph(
 
     for set_name, paths in raw_by_set.items():
         for path in paths:
-            for record in _read_raw(path):
+            for record in read_raw(path):
                 work_nodes, work_edges = work_rows(record)
                 for row in work_nodes:
                     nodes.add(row)
@@ -209,7 +209,7 @@ def build_graph(
     for row in ontology_edges():
         edges.add(row)
     for path in assertion_paths:
-        for assertion in _read_raw(path):
+        for assertion in read_raw(path):
             edges.add({name: assertion.get(name) for name in EDGE_SCHEMA.names})
     nodes.flush()
     edges.flush()

@@ -66,6 +66,8 @@ The hand-written seeds are hypotheses, because a graph constrained to them would
 | Typed claim | LLM extraction using predicates derived from the open pass, about 8 to 12 | This work says X measures or responds to Y | See `ROADMAP.md` |
 | Physical coupling | Curated, with a named constitutive link | This physics connects them | Reviewer time |
 
+Typed claims can come from any model: Claude or a local model such as OLMo plug in behind one interface and get the same checks ([ADR 0007](adr/0007-pluggable-extractors.md)). Offsets on L2 edges index into the title, a blank line, then the reconstructed abstract (`extract/text.py`).
+
 A typed claim is accepted only with at least two works from independent author groups, so one prolific group can't manufacture a consensus. Negative results are kept. The first two kinds describe what people wrote and the third describes the physics. An opportunity is often a mismatch between them.
 
 **Gold set.** It comes after the schema is frozen, because its labels depend on the node types, and it is split as in `config/extraction.yaml`. It is mostly bridge papers, with single-domain strata because a missed mention in one field later looks like a research gap, and hard negatives to test false positives.
