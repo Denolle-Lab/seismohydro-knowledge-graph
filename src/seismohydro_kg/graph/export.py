@@ -50,6 +50,8 @@ def export_graphml(graph_dir: Path, out_path: Path, core: bool = False) -> Path:
             SELECT node_id FROM {nodes_sql} WHERE node_type = 'Work'
                 AND json_extract(attrs, '$.in_corpus')::BOOLEAN
             UNION
+            SELECT source FROM {edges_sql} WHERE layer = 'L2'
+            UNION
             SELECT target FROM {edges_sql} WHERE layer = 'L2';
             CREATE TEMP VIEW core_nodes AS
             SELECT * FROM {nodes_sql} WHERE node_id IN (SELECT node_id FROM keep);

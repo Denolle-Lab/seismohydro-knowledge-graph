@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import itertools
 import json
 import os
 import random
@@ -245,9 +246,12 @@ def fulltext(
                 "already_present": result.already_present,
                 "unavailable": result.unavailable,
                 "invalid": result.invalid,
+                "previously_rejected": result.previously_rejected,
             }
             if result.stopped_at_cap:
                 manifest["status"] = "stopped_at_cap"
+            elif result.stopped_reason:
+                manifest["status"] = "stopped_all_rejected"
         except OpenAlexError as exc:
             manifest["status"] = "api_error"
             manifest["error"] = type(exc).__name__
@@ -258,11 +262,15 @@ def fulltext(
         typer.echo(
             f"{set_name} {format_}: {result.downloaded} downloaded, "
             f"{result.already_present} already present, {result.unavailable} unavailable, "
-            f"{result.invalid} invalid, of {result.selected} selected."
+            f"{result.invalid} rejected, {result.previously_rejected} rejected earlier "
+            f"(not paid again), of {result.selected} selected."
         )
     typer.echo(f"Spent ${client.guard.spent_run_usd:.4f}.")
     if failure:
         typer.echo(f"Stopped on an API error: {failure}. Run again to resume.", err=True)
+        raise typer.Exit(EXIT_API_ERROR)
+    if result and result.stopped_reason:
+        typer.echo(f"Stopped: {result.stopped_reason}.", err=True)
         raise typer.Exit(EXIT_API_ERROR)
     if result and result.stopped_at_cap:
         typer.echo(f"Stopped at cap: {result.stopped_at_cap}. Run again to resume.", err=True)
@@ -448,7 +456,10 @@ def extract_llm(
         if max_usd > cap:
             typer.echo(f"--max-usd is above the ${cap:.2f} cap in config/budget.yaml.", err=True)
             raise typer.Exit(EXIT_STOPPED_AT_CAP)
-        planned = limit or sum(1 for _ in iter_works(parts))
+        # Count no further than the limit: on a full corpus a complete count is slow.
+        planned = limit or sum(
+            1 for _ in itertools.islice(iter_works(parts), config["realtime_work_limit"] + 1)
+        )
         if planned > config["realtime_work_limit"]:
             typer.echo(
                 f"{planned} works is too many for real-time calls at full price. "

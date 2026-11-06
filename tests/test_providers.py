@@ -414,3 +414,26 @@ def test_cli_without_raw_works_says_so(tmp_path):
     result = CliRunner().invoke(app, ["extract", "gazetteer", "--raw-dir", str(tmp_path)])
     assert result.exit_code == EXIT_API_ERROR
     assert "No raw works" in result.output
+
+
+def test_cli_refuses_a_large_metered_run_without_counting_the_whole_corpus(tmp_path, monkeypatch):
+    # The count stops one past the limit (Copilot review, PR #1); an endless corpus proves it.
+    import itertools
+
+    import seismohydro_kg.extract.text as text_module
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key")
+    write_raw(tmp_path / "raw")
+    pulled = []
+
+    def endless(_parts):
+        for n in itertools.count():
+            pulled.append(n)
+            yield f"W{n}", {}
+
+    monkeypatch.setattr(text_module, "iter_works", endless)
+    arguments = ["extract", "llm", "--provider", "claude", "--raw-dir", str(tmp_path / "raw")]
+    result = CliRunner().invoke(app, [*arguments, "--max-usd", "0.10"])
+    assert result.exit_code == EXIT_STOPPED_AT_CAP
+    assert "too many" in result.output
+    assert len(pulled) == extraction_config()["realtime_work_limit"] + 1

@@ -66,7 +66,7 @@ milestones:
         body: "Replace the stub in `extract/discovery.py`. Open extraction with Haiku 5.5: node types suggested, vocabulary not fixed. Sample per `config/extraction.yaml`: 1,000 each from seismology only, hydrology only, high-scoring bridge works (from M2) and application sets. About $0.80, perhaps double. Treat abstract text as data, since it could contain instructions. Record measured token counts."
       - title: "Pilot extraction on the 100 starter papers with both providers"
         labels: [pipeline, science]
-        body: "Run `make starter-llm` with `claude` and `olmo` (ADR 0007). Measure real token counts, cost or GPU time, the rejected-quote rate per model, and whether vLLM serves OLMo with JSON-schema output. Neither has run on real text yet. Review `proposals.jsonl` by hand. This is a pilot of the mechanics, not an accuracy score. Needs the provider data-terms check for Claude."
+        body: "Run `make starter-llm` with `claude` and `olmo` (ADR 0007). Measure real token counts, cost or GPU time, the rejected-quote rate per model, and whether vLLM serves OLMo with JSON-schema output. Neither has run on real text yet. Review `proposals.jsonl` by hand. This is a pilot of the mechanics, not an accuracy score. The PI approved sending abstracts to Anthropic on 2026-11-06."
       - title: "Plot saturation curves and check the seeds"
         labels: [science]
         body: "New concepts per 100 additional abstracts, by stratum and source. This replaces the guessed 150 to 300 concepts per domain. Report how many hand-written seeds appear bottom-up, and which common terms the seeds missed."
@@ -106,7 +106,7 @@ milestones:
         body: "Run OLMo 3 7B, and any other open model that fits our GPUs, on the same 300 abstracts through `--provider` (ADR 0007). Score each node type and predicate as for Haiku, and record throughput. Report which post-cutoff literature each model trained on, for the holdout. If an open model meets the thresholds, bring the choice of bulk extractor back to the PI."
       - title: "Check LLM provider data terms for abstracts"
         labels: [domain-review]
-        body: "Abstracts leave our machines from the M3 discovery pass onward, so settle this before that run. Confirm that sending them is acceptable under the provider's terms and OpenAlex's guidance."
+        body: "Abstracts leave our machines from the M3 discovery pass onward. The PI approved sending them to Anthropic on 2026-11-06. Still open: record which Anthropic terms and data-retention settings apply to our account, check OpenAlex's guidance, and repeat the check for any other hosted provider. Local models (ADR 0007) keep text on our machines and need no check."
       - title: "Run the LLM on bridge works and the core and application samples"
         labels: [pipeline, paid-run]
         body: "Through `extract.yml` with a reviewer's approval. About 55k abstracts: bridge sets, 5% of core, 20% of application sets. Budget about $7 to $11 on Haiku 5.5. Proposed terms go to a review queue."

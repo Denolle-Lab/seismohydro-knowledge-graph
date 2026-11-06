@@ -58,15 +58,17 @@ SHKG_OPENALEX_DAILY_USD=5.20 uv run shkg fulltext --set bridge_keyword_and --lim
 
 Commands can be rerun safely: `ingest` resumes from its checkpoint, and `fulltext` skips files already on disk.
 
+OpenAlex charges for a file even when it turns out not to be TEI XML or a PDF, for example an HTML error page. `fulltext` keeps such a file as `<work_id>.xml.rejected` (or `.pdf.rejected`) and never downloads it again. If the first 5 files of a run are all rejected, it stops with exit code 3, because the format check is then the likely problem: the XML check expects a `<TEI>` root and has not yet seen a real OpenAlex file. Open one rejected file. If it is real TEI, report it, and rename the files to drop `.rejected` rather than paying again. To retry rejected files, delete them.
+
 | Exit code | Meaning | What to do |
 |---|---|---|
 | 0 | Finished | Next step |
 | 1 | Graph validation failed | Don't publish. Read the listed violations |
 | 2 | Stopped at a spending cap | Rerun after midnight UTC, or add credit and raise the cap |
-| 3 | API error, including rate limits | Wait a few minutes and rerun. New accounts are paced at $0.10 per 5 minutes for the first $1 |
+| 3 | API error, including rate limits, or the first 5 files all rejected | For rate limits, wait a few minutes and rerun; new accounts are paced at $0.10 per 5 minutes for the first $1. For rejections, see above |
 
 ## Afterward
 
 - **Spend.** Each run writes a manifest to `$SHKG_DATA_DIR/manifests/` with its dollars spent. The ledger `openalex_ledger.json` only knows about spend made through `shkg`, so compare it with your OpenAlex dashboard.
-- **What can leave the machine.** `graph/*.parquet` tables and manifests, once `shkg graph validate` has passed. Never `raw/` or `fulltext/`.
+- **What can leave the machine.** `graph/*.parquet` tables and manifests, once `shkg graph validate` has passed. Never `raw/` or `fulltext/`, including its `.rejected` files.
 - **What OpenAlex holds.** Its full-text copies cover open-access works, but licenses vary by work. Check licenses before any reuse beyond local text mining.

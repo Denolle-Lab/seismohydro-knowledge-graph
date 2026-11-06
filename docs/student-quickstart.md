@@ -67,7 +67,7 @@ We did this once: 48 of 50 random edges looked right to one reader, which is not
 
 The pipeline takes either model through the same command, and applies the same checks to both. Each claim needs a quote found word for word in the text, or it's rejected. New terms go to `proposals.jsonl` for review, and they never enter the vocabulary directly. Neither model has run on our text yet, so you'd be among the first.
 
-**Option A: Claude.** Costs money, and sends abstracts to Anthropic, so check with Marine first. Put `ANTHROPIC_API_KEY` in `.env`, then run:
+**Option A: Claude.** Sends abstracts to Anthropic, which Marine approved on 2026-11-06. It costs money, so check with her before a run. Put `ANTHROPIC_API_KEY` in `.env`, then run:
 
 ```bash
 make starter-llm PROVIDER=claude MAX_USD=0.25

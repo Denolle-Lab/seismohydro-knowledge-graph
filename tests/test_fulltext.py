@@ -9,7 +9,12 @@ from typer.testing import CliRunner
 
 import seismohydro_kg.openalex.client as client_module
 from seismohydro_kg.cli import EXIT_API_ERROR, EXIT_STOPPED_AT_CAP, app
-from seismohydro_kg.ingest.fulltext import download_fulltext, select_works
+from seismohydro_kg.ingest.fulltext import (
+    FORMATS,
+    REJECT_STOP,
+    download_fulltext,
+    select_works,
+)
 
 TEI = b"<TEI>synthetic placeholder</TEI>"
 
@@ -62,12 +67,53 @@ def test_cap_stops_and_a_resume_never_pays_twice(make_client, tmp_path):
     assert not [c for c in calls if c.url.host != "content.openalex.org"]
 
 
-def test_missing_file_is_not_charged_and_bad_file_is_not_kept(make_client, tmp_path):
-    bodies = {"W1": None, "W2": b"<html-free junk"[6:], "W3": TEI}
+def test_missing_file_is_not_charged_and_bad_file_is_set_aside(make_client, tmp_path):
+    bodies = {"W1": None, "W2": b"free junk", "W3": TEI}
     client = make_client(handler_for(["W1", "W2", "W3"], bodies=bodies))
     result = download_fulltext(client, "demo", "type:article", "xml", 3, tmp_path)
     assert (result.unavailable, result.invalid, result.downloaded) == (1, 1, 1)
     assert not (tmp_path / "demo" / "xml" / "W2.xml").exists()
+    assert (tmp_path / "demo" / "xml" / "W2.xml.rejected").exists()
+
+
+@pytest.mark.parametrize(
+    ("body", "valid"),
+    [
+        (TEI, True),
+        (
+            b'<?xml version="1.0" encoding="UTF-8"?>\n<TEI xmlns="http://www.tei-c.org/ns/1.0">',
+            True,
+        ),
+        (b"<?xml version='1.0'?><!-- grobid --><tei:TEI xmlns:tei='x'/>", True),
+        (b"<!DOCTYPE html><html><body>Access denied</body></html>", False),
+        (b"<html><head><title>503</title></head></html>", False),
+        (b"<error>rate limited</error>", False),
+        (b"", False),
+    ],
+)
+def test_xml_check_accepts_tei_and_rejects_html_error_pages(body, valid):
+    assert FORMATS["xml"][3](body) is valid
+
+
+def test_rejected_file_is_never_paid_for_twice(make_client, tmp_path):
+    bodies = {"W1": b"<!DOCTYPE html><html>blocked</html>", "W2": TEI}
+    first = make_client(handler_for(["W1", "W2"], bodies=bodies))
+    download_fulltext(first, "demo", "type:article", "xml", 2, tmp_path)
+    calls = []
+    resumed = make_client(handler_for(["W1", "W2"], bodies=bodies, calls=calls))
+    result = download_fulltext(resumed, "demo", "type:article", "xml", 2, tmp_path)
+    assert (result.previously_rejected, result.already_present) == (1, 1)
+    assert not [c for c in calls if c.url.host == "content.openalex.org"]
+    assert resumed.guard.spent_run_usd == 0
+
+
+def test_run_stops_when_every_early_file_is_rejected(make_client, tmp_path):
+    work_ids = [f"W{i}" for i in range(1, 11)]
+    bodies = dict.fromkeys(work_ids, b"<html>blocked</html>")
+    client = make_client(handler_for(work_ids, bodies=bodies))
+    result = download_fulltext(client, "demo", "type:article", "xml", 10, tmp_path)
+    assert result.invalid == REJECT_STOP and result.stopped_reason
+    assert client.guard.spent_run_usd == pytest.approx(0.0001 + REJECT_STOP * 0.01)
 
 
 def test_pdf_validity_check(make_client, tmp_path):
