@@ -19,6 +19,7 @@ from seismohydro_kg.config import data_dir, load_budget
 from seismohydro_kg.openalex.budget import BudgetGuard
 
 BASE_URL = "https://api.openalex.org"
+CONTENT_URL = "https://content.openalex.org"
 PER_PAGE_MAX = 100
 USER_AGENT = "seismohydro-knowledge-graph"
 _MAX_RETRY_AFTER_S = 300
@@ -37,6 +38,10 @@ class ApiKeyRequired(OpenAlexError):
 
 class PlanUpgradeRequired(OpenAlexError):
     """The request uses a paid feature, for example `from_updated_date`."""
+
+
+class NotAvailable(OpenAlexError):
+    """HTTP 404. For content downloads, OpenAlex does not hold the file."""
 
 
 def cost_class(params: dict[str, Any]) -> str:
@@ -62,6 +67,7 @@ class OpenAlexClient:
         self.rates = rates_usd_per_call
         self.usd_per_credit = usd_per_credit
         self.has_key = bool(api_key)
+        self._api_key = api_key
         self.min_interval_s = min_interval_s
         self.max_retries = max_retries
         self._sleep = sleep
@@ -89,35 +95,64 @@ class OpenAlexClient:
             return float(credits) * self.usd_per_credit
         return estimate
 
-    def get(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
-        estimate = self.rates[cost_class(params)]
-        self.guard.check(estimate)
+    def _send(self, url: str, params: dict[str, Any], label: str) -> httpx.Response:
+        """Return a 200 response, retrying rate limits and server errors.
+
+        Errors use `label`, never the URL, because content URLs carry the key as a parameter.
+        """
         for attempt in range(self.max_retries + 1):
             self._pace()
             try:
-                response = self._http.get(path, params=params)
+                response = self._http.get(url, params=params)
             except httpx.TransportError as exc:
                 if attempt == self.max_retries:
-                    raise OpenAlexError(f"network failure on {path}: {type(exc).__name__}") from exc
+                    raise OpenAlexError(
+                        f"network failure on {label}: {type(exc).__name__}"
+                    ) from None
                 self._sleep(2**attempt)
                 continue
             if response.status_code == 200:
-                payload = response.json()
-                self.guard.charge(self._cost(response, payload, estimate))
-                return payload
+                return response
             detail = response.text[:300]
             if response.status_code == 401:
-                raise ApiKeyRequired(f"{path}: HTTP 401, set OPENALEX_API_KEY. {detail}")
+                raise ApiKeyRequired(f"{label}: HTTP 401, set OPENALEX_API_KEY. {detail}")
+            if response.status_code == 404:
+                raise NotAvailable(f"{label}: HTTP 404")
             if response.status_code == 429 and "Plan upgrade required" in detail:
-                raise PlanUpgradeRequired(f"{path}: {detail}")
+                raise PlanUpgradeRequired(f"{label}: {detail}")
             if response.status_code == 429 or response.status_code >= 500:
                 delay = float(response.headers.get("Retry-After", 2**attempt))
                 if attempt == self.max_retries or delay > _MAX_RETRY_AFTER_S:
-                    raise OpenAlexError(f"{path}: HTTP {response.status_code}, gave up. {detail}")
+                    raise OpenAlexError(f"{label}: HTTP {response.status_code}, gave up. {detail}")
                 self._sleep(delay)
                 continue
-            raise OpenAlexError(f"{path}: HTTP {response.status_code}. {detail}")
-        raise OpenAlexError(f"{path}: retries exhausted")
+            raise OpenAlexError(f"{label}: HTTP {response.status_code}. {detail}")
+        raise OpenAlexError(f"{label}: retries exhausted")
+
+    def get(self, path: str, params: dict[str, Any]) -> dict[str, Any]:
+        estimate = self.rates[cost_class(params)]
+        self.guard.check(estimate)
+        response = self._send(path, params, path)
+        payload = response.json()
+        self.guard.charge(self._cost(response, payload, estimate))
+        return payload
+
+    def download(self, work_id: str, extension: str) -> bytes | None:
+        """Fetch one full-text file. Returns None, uncharged, if OpenAlex does not hold it."""
+        if not self._api_key:
+            raise ApiKeyRequired("content download: set OPENALEX_API_KEY")
+        estimate = self.rates["content"]
+        self.guard.check(estimate)
+        try:
+            response = self._send(
+                f"{CONTENT_URL}/works/{work_id}.{extension}",
+                {"api_key": self._api_key},
+                f"content {work_id}",
+            )
+        except NotAvailable:
+            return None
+        self.guard.charge(self._cost(response, {}, estimate))
+        return response.content
 
     def group_counts(self, filter_: str, group_by: str) -> dict[str, int]:
         payload = self.get("/works", {"filter": filter_, "group_by": group_by})
@@ -127,19 +162,19 @@ class OpenAlexClient:
         }
 
     def iter_pages(
-        self, filter_: str, select: list[str], cursor: str = "*"
+        self, filter_: str, select: list[str], cursor: str = "*", sort: str | None = None
     ) -> Iterator[tuple[list[dict[str, Any]], str | None]]:
         """Yield (results, next_cursor). Start again from any next_cursor to resume."""
         while cursor:
-            payload = self.get(
-                "/works",
-                {
-                    "filter": filter_,
-                    "select": ",".join(select),
-                    "per_page": PER_PAGE_MAX,
-                    "cursor": cursor,
-                },
-            )
+            params = {
+                "filter": filter_,
+                "select": ",".join(select),
+                "per_page": PER_PAGE_MAX,
+                "cursor": cursor,
+            }
+            if sort:
+                params["sort"] = sort
+            payload = self.get("/works", params)
             cursor = payload["meta"].get("next_cursor")
             yield payload["results"], cursor
 

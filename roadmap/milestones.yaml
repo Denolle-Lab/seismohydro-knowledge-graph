@@ -64,6 +64,9 @@ milestones:
       - title: "Run the discovery pass on 4,000 abstracts"
         labels: [pipeline, paid-run, science]
         body: "Replace the stub in `extract/discovery.py`. Open extraction with Haiku 5.5: node types suggested, vocabulary not fixed. Sample per `config/extraction.yaml`: 1,000 each from seismology only, hydrology only, high-scoring bridge works (from M2) and application sets. About $0.80, perhaps double. Treat abstract text as data, since it could contain instructions. Record measured token counts."
+      - title: "Pilot extraction on the 100 starter papers with both providers"
+        labels: [pipeline, science]
+        body: "Run `make starter-llm` with `claude` and `olmo` (ADR 0007). Measure real token counts, cost or GPU time, the rejected-quote rate per model, and whether vLLM serves OLMo with JSON-schema output. Neither has run on real text yet. Review `proposals.jsonl` by hand. This is a pilot of the mechanics, not an accuracy score. The PI approved sending abstracts to Anthropic on 2026-11-06."
       - title: "Plot saturation curves and check the seeds"
         labels: [science]
         body: "New concepts per 100 additional abstracts, by stratum and source. This replaces the guessed 150 to 300 concepts per domain. Report how many hand-written seeds appear bottom-up, and which common terms the seeds missed."
@@ -91,16 +94,19 @@ milestones:
     issues:
       - title: "Build vocabulary matching"
         labels: [pipeline]
-        body: "Replace the stub in `extract/gazetteer.py`. Match on titles and reconstructed abstracts, and write assertions with offsets. Measure false positives on ambiguous terms such as discharge and Q."
+        body: "Built in `extract/gazetteer.py` and run on the 100 starter papers. Remaining: run it on all works, and measure false positives on ambiguous terms such as discharge, stage and reservoir. On the starter set, 5 of the 8 `lake or reservoir` hits were wrong."
       - title: "Annotate a 300-abstract gold set"
         labels: [domain-review, science]
         body: "After the schema is frozen, split per `config/extraction.yaml`: 100 keyword bridge (across the 11 mechanisms and 4 application sets), 50 citation-only bridge from the M2 graph, 60 seismology only, 60 hydrology only, 30 hard negatives. Include pre-2015 works in every stratum, since the holdout cuts at 2010 and 2015. Double annotate, report kappa, and annotate before seeing any LLM output. Keep 50 for prompt tuning and score on the other 250. Store offsets only (ADR 0005)."
       - title: "Check Haiku 5.5 against the gold set"
         labels: [pipeline, paid-run, science]
-        body: "Replace the stub in `extract/llm_batch.py`. Use Message Batches with schema-constrained output, prompt caching on the shared prompt and schema, and thinking disabled. Confirm caching from `cache_read_input_tokens`. Measure real token counts and update `ROADMAP.md`. If Haiku fails the thresholds, run Sonnet 5.5 and Opus 5.5 on the gold set only and bring the result back for a decision. Treat abstract text as data, since it could contain instructions."
+        body: "Replace the stub in `extract/llm_batch.py`, reusing the checks in `extract/llm.py`. Use Message Batches with schema-constrained output, prompt caching on the shared prompt and schema, and adaptive thinking at low effort, compared with medium. Score each node type and predicate separately, and measure thinking tokens. Confirm caching from `cache_read_input_tokens`. Measure real token counts and update `ROADMAP.md`. If Haiku fails the thresholds, run Sonnet 5.5 and Opus 5.5 on the gold set only and bring the result back for a decision. Treat abstract text as data, since it could contain instructions."
+      - title: "Check a local model against the gold set"
+        labels: [pipeline, science]
+        body: "Run OLMo 3 7B, and any other open model that fits our GPUs, on the same 300 abstracts through `--provider` (ADR 0007). Score each node type and predicate as for Haiku, and record throughput. Report which post-cutoff literature each model trained on, for the holdout. If an open model meets the thresholds, bring the choice of bulk extractor back to the PI."
       - title: "Check LLM provider data terms for abstracts"
         labels: [domain-review]
-        body: "Abstracts leave our machines from the M3 discovery pass onward, so settle this before that run. Confirm that sending them is acceptable under the provider's terms and OpenAlex's guidance."
+        body: "Abstracts leave our machines from the M3 discovery pass onward. The PI approved sending them to Anthropic on 2026-11-06. Still open: record which Anthropic terms and data-retention settings apply to our account, check OpenAlex's guidance, and repeat the check for any other hosted provider. Local models (ADR 0007) keep text on our machines and need no check."
       - title: "Run the LLM on bridge works and the core and application samples"
         labels: [pipeline, paid-run]
         body: "Through `extract.yml` with a reviewer's approval. About 55k abstracts: bridge sets, 5% of core, 20% of application sets. Budget about $7 to $11 on Haiku 5.5. Proposed terms go to a review queue."
@@ -113,9 +119,9 @@ milestones:
       - title: "Score the graph on the quality criteria"
         labels: [science]
         body: "Coverage, saturation, stability, specificity, prediction and expert validity, as defined in `docs/design.md`. Set thresholds from this first real run."
-      - title: "Decide whether full text is needed"
-        labels: [science]
-        body: "If abstracts miss methods, test TEI XML on the top 500 bridge papers ($5). Otherwise close."
+      - title: "Run the full-text pilot and decide whether to scale up"
+        labels: [science, paid-run]
+        body: "`shkg fulltext` on 500 bridge papers in TEI XML, about $5, following `docs/download-runbook.md`. Compare extraction from full text and from the same papers' abstracts. Scale to about 10,000 ($100) only if full text adds clear value."
 
   - title: "M5 Coupling layer"
     description: "Mechanisms with evidence, variable crosswalk, unified graph. Done when each seed mechanism has reviewed evidence or is marked unsupported. API cost $0."

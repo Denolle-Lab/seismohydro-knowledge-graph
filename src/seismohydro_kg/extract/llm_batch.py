@@ -1,6 +1,8 @@
-"""Tier 3: LLM extraction through Message Batches, with schema-constrained output. Planned for M4.
+"""Claude's half-price bulk path through Message Batches. Planned for M4.
 
-Model choice comes from config/extraction.yaml: Haiku 5.5, checked against the gold set in M4.
+`shkg extract llm` (extract/llm.py) already runs any provider, one real-time call per work, for
+sets of up to `realtime_work_limit`. This adds batching for the 55k-abstract run. It must reuse
+`check_output` so that batch results pass the same checks. Local models do not need it.
 """
 
 from __future__ import annotations

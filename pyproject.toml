@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 license = { text = "BSD-3-Clause" }
 authors = [{ name = "Denolle Lab" }]
 dependencies = [
+    "anthropic>=2.5.0",
     "duckdb>=1.1",
     "httpx>=0.27",
     "linkml>=1.8",
@@ -19,7 +20,11 @@ dependencies = [
 shkg = "seismohydro_kg.cli:app"
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.6"]
+dev = [
+    "httpx2>=2.16.0",
+    "pytest>=8",
+    "ruff>=0.6",
+]
 
 [build-system]
 requires = ["hatchling"]

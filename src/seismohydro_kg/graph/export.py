@@ -34,9 +34,34 @@ def export_neo4j(graph_dir: Path, out_dir: Path) -> list[Path]:
     return [nodes_csv, edges_csv]
 
 
-def export_graphml(graph_dir: Path, out_path: Path) -> Path:
+def export_graphml(graph_dir: Path, out_path: Path, core: bool = False) -> Path:
+    """Write GraphML. `core` keeps works in the set, the concepts they mention and links among them.
+
+    Without it, a small set still drags in every cited work and author, which hides the structure.
+    """
     out_path.parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect()
+    nodes_sql = f"'{graph_dir}/nodes.parquet'"
+    edges_sql = f"'{graph_dir}/edges.parquet'"
+    if core:
+        con.execute(
+            f"""
+            CREATE TEMP TABLE keep AS
+            SELECT node_id FROM {nodes_sql} WHERE node_type = 'Work'
+                AND json_extract(attrs, '$.in_corpus')::BOOLEAN
+            UNION
+            SELECT source FROM {edges_sql} WHERE layer = 'L2'
+            UNION
+            SELECT target FROM {edges_sql} WHERE layer = 'L2';
+            CREATE TEMP VIEW core_nodes AS
+            SELECT * FROM {nodes_sql} WHERE node_id IN (SELECT node_id FROM keep);
+            CREATE TEMP VIEW core_edges AS
+            SELECT * FROM {edges_sql} WHERE layer = 'L2' OR (edge_type = 'cites'
+                AND source IN (SELECT node_id FROM keep)
+                AND target IN (SELECT node_id FROM keep));
+            """
+        )
+        nodes_sql, edges_sql = "core_nodes", "core_edges"
     with open(out_path, "w", encoding="utf-8") as handle:
         handle.write('<?xml version="1.0" encoding="UTF-8"?>\n')
         handle.write('<graphml xmlns="http://graphml.graphdrawing.org/xmlns">\n')
@@ -46,14 +71,14 @@ def export_graphml(graph_dir: Path, out_path: Path) -> Path:
         handle.write('<key id="edge_type" for="edge" attr.name="edge_type" attr.type="string"/>\n')
         handle.write('<graph edgedefault="directed">\n')
         for node_id, node_type, layer, label in con.execute(
-            f"SELECT node_id, node_type, layer, label FROM '{graph_dir}/nodes.parquet'"
+            f"SELECT node_id, node_type, layer, label FROM {nodes_sql}"
         ).fetchall():
             handle.write(f"<node id={quoteattr(node_id)}>")
             handle.write(f'<data key="type">{_text(node_type)}</data>')
             handle.write(f'<data key="layer">{_text(layer)}</data>')
             handle.write(f'<data key="label">{_text(label)}</data></node>\n')
         for source, target, edge_type in con.execute(
-            f"SELECT source, target, edge_type FROM '{graph_dir}/edges.parquet'"
+            f"SELECT source, target, edge_type FROM {edges_sql}"
         ).fetchall():
             handle.write(f"<edge source={quoteattr(source)} target={quoteattr(target)}>")
             handle.write(f'<data key="edge_type">{_text(edge_type)}</data></edge>\n')

@@ -17,11 +17,14 @@ class GoldSpan:
     annotator: str
 
 
-def rehydrate(span: GoldSpan, abstract: str) -> str:
-    """Return the annotated text. For local use only: do not store the result in a public table."""
-    if not 0 <= span.char_start < span.char_end <= len(abstract):
+def rehydrate(span: GoldSpan, text: str) -> str:
+    """Return the annotated span of `extract.text.work_text`.
+
+    For local use only: do not store the result in a public table.
+    """
+    if not 0 <= span.char_start < span.char_end <= len(text):
         raise ValueError(
-            f"{span.work_id}: offsets {span.char_start}-{span.char_end} do not fit an abstract of "
-            f"{len(abstract)} characters. The upstream abstract may have changed."
+            f"{span.work_id}: offsets {span.char_start}-{span.char_end} do not fit a text of "
+            f"{len(text)} characters. The upstream title or abstract may have changed."
         )
-    return abstract[span.char_start : span.char_end]
+    return text[span.char_start : span.char_end]

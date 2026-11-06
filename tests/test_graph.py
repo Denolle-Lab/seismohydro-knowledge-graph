@@ -161,3 +161,17 @@ def test_cli_validate_exits_nonzero_on_missing_provenance(tmp_path):
     )
     assert built.exit_code == 0, built.output
     assert runner.invoke(app, ["graph", "validate", "--path", out]).exit_code == 1
+
+
+def test_core_export_keeps_concepts_that_are_only_edge_sources(tmp_path):
+    # A concept-to-concept claim whose source concept no paper mentions (Copilot review, PR #1).
+    claim = [line for line in GOOD.read_text().splitlines() if '"responds_to"' in line]
+    assertions = tmp_path / "claims.jsonl"
+    assertions.write_text("\n".join(claim) + "\n")
+    build_graph({"fixture": [WORKS]}, [assertions], tmp_path / "graph")
+    tree = ET.parse(export_graphml(tmp_path / "graph", tmp_path / "core.graphml", core=True))
+    namespace = "{http://graphml.graphdrawing.org/xmlns}"
+    nodes = {node.get("id") for node in tree.iter(f"{namespace}node")}
+    edges = list(tree.iter(f"{namespace}edge"))
+    assert "seis:dv_v" in nodes
+    assert edges and all(e.get("source") in nodes and e.get("target") in nodes for e in edges)

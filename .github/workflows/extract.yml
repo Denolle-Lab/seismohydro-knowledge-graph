@@ -1,7 +1,8 @@
 name: extract
 
 # LLM extraction. Manual dispatch only, and the paid-runs environment requires a reviewer.
-# Fails until milestone M4 replaces the stub in src/seismohydro_kg/extract/llm_batch.py.
+# Exits with an error until raw works exist on the runner and M4 adds Message Batches for bulk runs
+# (src/seismohydro_kg/extract/llm_batch.py). Local models run on your own machines, not here.
 
 on:
   workflow_dispatch:
